@@ -5,7 +5,6 @@ const permissoes = require('../helpers/permissoes');
 module.exports = app => {
     app.post('/credenciamento', (req, res) => {
         const credenciamento = req.body;
-       
         Credenciamento.adiciona(credenciamento, res);
     });
 

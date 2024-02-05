@@ -7,8 +7,6 @@ module.exports = app => {
         if (req.id_permissao.includes(permissoes.admin) || req.id_permissao.includes(permissoes.secretaria) || 
         req.id_permissao.includes(permissoes.orientadores)) {
             const ata = req.body;
-            //console.log(ata);
-
             Ata.adiciona(ata, res);
             return;
         }
@@ -19,9 +17,9 @@ module.exports = app => {
     app.put('/ata/:id', Auth.verificaJWT, (req, res) => {
         if (req.id_permissao.includes(permissoes.admin) || req.id_permissao.includes(permissoes.secretaria) || 
         req.id_permissao.includes(permissoes.orientadores)) {
-            const id_ata = req.params.id;
+            const id = req.params.id;
             const valores = req.body;
-            Ata.altera(id_ata, valores, res);  
+            Ata.altera(id, valores, res);  
             return;
         }
         res.status(400).send({ auth: false, permissoes: false, message: 'Você não tem permissão para acessar essa página.' });

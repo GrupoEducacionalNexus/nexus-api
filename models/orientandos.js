@@ -91,8 +91,8 @@ class Orientando {
                                                         if (erro) {
                                                             res.status(400).json(erro);
                                                         } else {
-                                                            sql = `SELECT usuarios.id, usuarios.nome, usuarios.email, usuarios.cpf_cnpj, usuarios.senha
-                                                                            FROM usuarios WHERE usuarios.id = ?`;
+                                                            sql = `SELECT usuario.id, usuario.nome, usuario.email, usuario.cpf_cnpj, usuario.senha
+                                                                            FROM usuario WHERE usuario.id = ?`;
                                                             conexao.query(sql, [id_orientador], (erro, resultados) => {
                                                                 if (erro) {
                                                                     res.status(400).json({ status: 400, msg: erro });

@@ -17,7 +17,6 @@ module.exports = app => {
     app.get('/lider_gt/:id/grupo_trabalho', Auth.verificaJWT, (req, res) => {
         if (req.id_permissao.includes(permissoes.grupo_trabalho)) {
             const id_usuario = req.userId;
-            console.log(id_usuario);
             LiderGt.listaGruposDeTrabalho(id_usuario, res);
             return;
         }

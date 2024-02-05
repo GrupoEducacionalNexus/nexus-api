@@ -4,6 +4,7 @@ const permissoes = require('../helpers/permissoes');
 
 class Aluno {
     adiciona(dados, id_permissao, res) {
+        
         let dataHoraCriacao = moment().format('YYYY-MM-DD hh:mm:ss');
         let sql = ``;
         let id_usuario = 0;

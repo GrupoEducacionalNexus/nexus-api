@@ -19,7 +19,6 @@ class Orientador {
 
     listaDeOrientandos(id_orientador, filtro, res) {
         const {nome, idLinhaPesquisa, idFaseProcesso} = filtro;
-        //console.log(id_orientador, nome, idLinhaPesquisa, idFaseProcesso);
 
         const sql = `SELECT orientandos.id, usuarios.id as id_usuario, usuarios.nome, usuarios.email, cursos.id as id_curso, cursos.nome as curso,
         tipo_banca.id AS id_tipoBanca, tipo_banca.nome AS fase_processo, 
@@ -57,9 +56,10 @@ class Orientador {
     }
 
     listaDeBancas(id_orientador, id_tipoBanca, res) {
-        const sql = `SELECT bancas.id, bancas.title, bancas.titulo, orientandos.id AS id_orientando, linhas_pesquisas.id_areaConcentracao, 
-        linhas_pesquisas.nome AS linha_pesquisa, areas_concentracao.nome AS areaConcentracao,
-        DATE_FORMAT(bancas.data_horaPrevista,'%d/%m/%Y %H:%i:%s') AS data_horaPrevista, 
+        const sql = `SELECT bancas.id, bancas.title, bancas.titulo, orientandos.id AS id_orientando, 
+        linhas_pesquisas.id_areaConcentracao, linhas_pesquisas.nome AS linha_pesquisa, 
+        areas_concentracao.nome AS areaConcentracao, DATE_FORMAT(bancas.data_horaPrevista,'%d/%m/%Y %H:%i:%s') AS dataHoraPrevistaFormatada,
+        DATE_FORMAT(bancas.data_horaPrevista,'%Y-%m-%d %H:%i') AS dataHoraPrevista, 
         DATE_FORMAT(bancas.data_horaPrevista,'%Y/%m/%d') AS dataFormatAmericano,
         usuarios.nome AS orientando, usuarios.email AS email_orientando, cursos.nome AS curso, 
         tipo_banca.id AS id_tipoBanca, tipo_banca.nome AS tipo_banca, bancas.status,
@@ -72,26 +72,14 @@ class Orientador {
         DATE_FORMAT(orientandos.dataHoraInicialFaseProcesso, "%d-%m-%Y %H:%i:%s") AS dataHoraInicialFaseProcessoTb, 
         DATE_FORMAT(orientandos.dataHoraFinalFaseProcesso, "%d-%m-%Y %H:%i:%s") AS dataHoraFinalFaseProcessoTb, 
         DATE_FORMAT(orientandos.dataHoraConclusao, "%d-%m-%Y %H:%i:%s") AS dataHoraConclusaoTb,
-        ata.id AS id_ata, ata.link, ata.titulo_teseOuDissertacao, ata.status AS id_statusAta,
-        ata.quant_pag, (SELECT status.nome FROM status WHERE status.id = ata.status) AS status_ata,
+        ata.id AS id_ata, ata.status AS id_statusAta,
+        (SELECT status.nome FROM status WHERE status.id = ata.status) AS status_ata,
         DATE_FORMAT(bancas.data_horaPrevista, "%M %d, %Y") AS dtCadAta,
         DATE_FORMAT(orientandos.dt_confirmacaoTaxaQ, "%d-%m-%Y %H:%i:%s") AS dt_confirmacaoTaxaQ,
         IF(orientandos.status_confirmacaoBancaQ = 1, "AGUARDANDO", IF(orientandos.status_confirmacaoBancaQ = 7, "FINALIZADA", "CONFIRMADO")) AS status_confirmacaoBancaQ,
         DATE_FORMAT(orientandos.dt_confirmacaoTaxaD, "%d-%m-%Y %H:%i:%s") AS dt_confirmacaoTaxaD,
         IF(orientandos.status_confirmacaoBancaD = 1, "AGUARDANDO", IF(orientandos.status_confirmacaoBancaD = 7, "FINALIZADA", "CONFIRMADO")) AS status_confirmacaoBancaD,
         orientandos.observacao, 
-        bancas.id_membroInterno, 
-		(SELECT UPPER(usuarios.nome) FROM usuarios WHERE usuarios.id =  bancas.id_membroInterno)
-        AS membro_interno,
-        (SELECT orientador.assinatura FROM orientador WHERE orientador.id_usuario = bancas.id_membroInterno)
-        AS assinatura_membroInterno,
-        bancas.id_membroExterno,
-        (SELECT UPPER(usuarios.nome) FROM membro_externo 
-		INNER JOIN usuarios ON membro_externo.id_usuario = usuarios.id
-		WHERE bancas.id_membroExterno = membro_externo.id_usuario)
-        AS membro_externo,
-         (SELECT membro_externo.assinatura FROM membro_externo WHERE bancas.id_membroExterno = membro_externo.id_usuario)
-        AS assinatura_membroExterno,
         ficha_avaliacao.id AS id_fichaAvaliacao, orientandos.id_linhaPesquisa,
         ficha_avaliacao.titulo_projeto, ficha_avaliacao.pergunta_condutora,
         ficha_avaliacao.hipotese, ficha_avaliacao.fundamentacao_teorica,
@@ -115,7 +103,7 @@ class Orientador {
             WHEN DATE_FORMAT(ficha_avaliacao.dataHoraCriacao, "%M") = 'December' THEN DATE_FORMAT(ficha_avaliacao.dataHoraCriacao, "%d de Dezembro de %Y")
         END) AS dataFichaAvaliacaoPtBr, 
 		  folha_aprovacao.id AS idFolhaDeAprovacao,
-		  DATE_FORMAT(folha_aprovacao.dataAprovacao, "%Y-%m-%d") AS dtFolhaAprovacao,
+		  DATE_FORMAT(folha_aprovacao.dataAprovacao, "%d/%m/%Y") AS dtFolhaAprovacao,
           declaracao_orientacao.id As idDeclaracaoOrientacao,
           declaracao_orientacao.codigo_validacao AS codigoDeclaracaoDeOrientacao,
           DATE_FORMAT(declaracao_orientacao.dataHoraCriacao, "%M %d, %Y") AS dataDeclaracaoDeOrientacaoEnUs,
@@ -132,7 +120,21 @@ class Orientador {
               WHEN DATE_FORMAT(declaracao_orientacao.dataHoraCriacao, "%M") = 'October' THEN DATE_FORMAT(declaracao_orientacao.dataHoraCriacao, "%d de Outubro de %Y")
               WHEN DATE_FORMAT(declaracao_orientacao.dataHoraCriacao, "%M") = 'November' THEN DATE_FORMAT(declaracao_orientacao.dataHoraCriacao, "%d de Novembro de %Y")
               WHEN DATE_FORMAT(declaracao_orientacao.dataHoraCriacao, "%M") = 'December' THEN DATE_FORMAT(declaracao_orientacao.dataHoraCriacao, "%d de Dezembro de %Y")
-          END) AS dataDeclaracaoDeOrientacaoPtBr
+          END) AS dataDeclaracaoDeOrientacaoPtBr,
+          (CASE
+            WHEN DATE_FORMAT(bancas.data_horaPrevista, "%M") = 'January' THEN DATE_FORMAT(bancas.data_horaPrevista, "Aos %d dias do mês de Janeiro do ano de %Y, às %H:%i horas") 
+            WHEN DATE_FORMAT(bancas.data_horaPrevista, "%M") = 'February' THEN DATE_FORMAT(bancas.data_horaPrevista, "Aos %d dias do mês de Fevereiro do ano de %Y, às %H:%i horas")
+            WHEN DATE_FORMAT(bancas.data_horaPrevista, "%M") = 'March' THEN DATE_FORMAT(bancas.data_horaPrevista, "Aos %d dias do mês de Março do ano de %Y, às %H:%i horas")
+            WHEN DATE_FORMAT(bancas.data_horaPrevista, "%M") = 'April' THEN DATE_FORMAT(bancas.data_horaPrevista, "Aos %d dias do mês de Abril do ano de %Y, às %H:%i horas")
+            WHEN DATE_FORMAT(bancas.data_horaPrevista, "%M") = 'May' THEN DATE_FORMAT(bancas.data_horaPrevista, "Aos %d dias do mês de Maio do ano de %Y, às %H:%i horas")
+            WHEN DATE_FORMAT(bancas.data_horaPrevista, "%M") = 'June' THEN DATE_FORMAT(bancas.data_horaPrevista, "Aos %d dias do mês de Junho do ano de %Y, às %H:%i horas")
+            WHEN DATE_FORMAT(bancas.data_horaPrevista, "%M") = 'July' THEN DATE_FORMAT(bancas.data_horaPrevista, "Aos %d dias do mês de Julho do ano de %Y, às %H:%i horas")
+            WHEN DATE_FORMAT(bancas.data_horaPrevista, "%M") = 'August' THEN DATE_FORMAT(bancas.data_horaPrevista, "Aos %d dias do mês de Agosto do ano de %Y, às %H:%i horas")
+            WHEN DATE_FORMAT(bancas.data_horaPrevista, "%M") = 'September' THEN DATE_FORMAT(bancas.data_horaPrevista, "Aos %d dias do mês de Setembro do ano de %Y, às %H:%i horas")
+            WHEN DATE_FORMAT(bancas.data_horaPrevista, "%M") = 'October' THEN DATE_FORMAT(bancas.data_horaPrevista, "Aos %d dias do mês de Outubro do ano de %Y, às %H:%i horas")
+            WHEN DATE_FORMAT(bancas.data_horaPrevista, "%M") = 'November' THEN DATE_FORMAT(bancas.data_horaPrevista, "Aos %d dias do mês de Novembro do ano de %Y, às %H:%i horas")
+            WHEN DATE_FORMAT(bancas.data_horaPrevista, "%M") = 'December' THEN DATE_FORMAT(bancas.data_horaPrevista, "Aos %d dias do mês de Dezembro do ano de %Y, às %H:%i horas")
+        END) AS dataHoraPrevistaAta, bancas.resumo, bancas.palavra_chave
         FROM bancas
         INNER JOIN orientandos ON bancas.id_orientando = orientandos.id
         INNER JOIN cursos ON cursos.id = orientandos.id_curso
@@ -150,7 +152,6 @@ class Orientador {
                 res.status(400).json({ status: 400, msg: erro });
             } else {
                 res.status(200).json({ status: 200, resultados, id_tipoBanca });
-                console.log(resultados);
             }
         });
     }

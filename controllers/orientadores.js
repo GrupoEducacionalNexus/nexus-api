@@ -16,8 +16,6 @@ module.exports = app => {
     app.get('/orientadores/:id/bancas', Auth.verificaJWT, (req, res) => {
         const id_orientador = req.userId;
         const id_tipoBanca = req.query.tipo_banca;
-        console.log(id_orientador, id_tipoBanca);
-      
         Orientador.listaDeBancas(id_orientador, id_tipoBanca, res);
     });
 

@@ -9,8 +9,6 @@ module.exports = app => {
         req.id_permissao.includes(permissoes.orientadores)) {
             const id_orientador = req.userId;
             const declaracao_participacao = req.body; 
-            console.log(declaracao_participacao);
-            
             DeclaracaoParticipacao.adiciona({...declaracao_participacao, id_orientador}, res); 
             return;
         } 

@@ -11,10 +11,8 @@ class Banca {
             arraySelectedMembrosInternos, arraySelectedMembrosExternos
         } = banca;
 
-        //Lista de membros externos
-        const arrayBancasXmembroExterno = [];
         //Lista de membros internos
-        const arrayBancasXmembroInterno = [];
+        const arrayBancasXmembros = [];
 
         let sql = ``;
         const dataHoraCriacao = moment().format('YYYY-MM-DD HH:mm:ss');
@@ -41,10 +39,9 @@ class Banca {
                         WHERE bancas.id_orientando = ? AND bancas.id_tipoBanca = ? OR 
                         bancas.data_horaPrevista = ?`;
 
-                        conexao.query(sql, [id_orientando, id_tipoBanca, moment(data_horaPrevista).utc().format('YYYY-MM-DD')], (erro, resultados) => {
+                        conexao.query(sql, [id_orientando, id_tipoBanca, moment(data_horaPrevista).format('YYYY-MM-DD')], (erro, resultados) => {
                             if (erro) {
                                 res.status(400).json({ status: 400, msg: erro });
-
                             } else {
                                 if (resultados.length > 0) {
                                     res.status(400).json({
@@ -62,48 +59,45 @@ class Banca {
                                         } else {
                                             const idBanca = resultados.insertId;
 
+                                            arrayBancasXmembros.push([
+                                                id_orientador, idBanca, 1, dataHoraCriacao
+                                            ]);
+
                                             arraySelectedMembrosInternos.map(membroInterno => {
-                                                arrayBancasXmembroInterno.push([
-                                                    idBanca, membroInterno.value, dataHoraCriacao
+                                                arrayBancasXmembros.push([
+                                                    membroInterno.value, idBanca, 2, dataHoraCriacao
                                                 ])
                                             });
 
                                             arraySelectedMembrosExternos.map(membroExterno => {
-                                                arrayBancasXmembroExterno.push([
-                                                    idBanca, membroExterno.value, dataHoraCriacao
+                                                arrayBancasXmembros.push([
+                                                    membroExterno.value, idBanca, 3, dataHoraCriacao
                                                 ])
                                             });
 
 
                                             //Cadastrar a lista de membros internos da banca
-                                            sql = `INSERT INTO bancasxmembro_interno (id_banca, id_membroInterno, dataHoraCriacao) VALUES ?`;
+                                            sql = `INSERT INTO bancasxmembros (id_usuario, id_banca, id_tipo, dataHoraCriacao) VALUES ?`;
                                             conexao.query(sql, [arrayBancasXmembroInterno], (erro, resultados) => {
                                                 if (erro) {
                                                     res.status(400).json(erro);
                                                 } else {
-                                                    //Cadastrar a lista de membros externos da banca
-                                                    sql = `INSERT INTO bancasxmembro_externo (id_banca, id_membroExterno, dataHoraCriacao) VALUES ?`;
-                                                    conexao.query(sql, [arrayBancasXmembroExterno], (erro, resultados) => {
-                                                        if (erro) {
-                                                            res.status(400).json(erro);
-                                                        } else {
-                                                            sql = 'UPDATE orientandos SET ? WHERE id = ?';
-                                                            conexao.query(sql, [
-                                                                {
-                                                                    fase_processo: 1
-                                                                }, id_orientando], (erro, resultados) => {
-                                                                    if (erro) {
-                                                                        res.status(400).json({ status: 400, msg: erro });
-                                                                    } else {
 
-                                                                        res.status(200).json({ status: 200, msg: "Banca cadastrada com sucesso" });
-                                                                        enviarEmail("angelligruponexus@gmail.com,gabrielbatistagruponexus@gmail.com,renata@enberuniversity.com,tobiaseducanexus@gmail.com", "Mensagem sobre registro de banca!",
-                                                                            `<p><b>O orientador(a) ${orientador}</b> registrou uma nova banca de ${id_tipoBanca === 1 ? "qualificação" : "defesa"} para o <b>orientando ${orientando}</b> que está prevista para acontecer às ${moment(data_horaPrevista).format('HH:mm')} no dia ${moment(data_horaPrevista).format('DD/MM/YYYY')}.<p/>
-                                                                        <p>Acesse o link <a href="https://www.gestorgruponexus.com.br/">https://www.gestorgruponexus.com.br/</a> para verificar!.<p/>`);
-                                                                    }
-                                                                });
-                                                        }
-                                                    });
+                                                    sql = 'UPDATE orientandos SET ? WHERE id = ?';
+                                                    conexao.query(sql, [
+                                                        {
+                                                            fase_processo: 1
+                                                        }, id_orientando], (erro, resultados) => {
+                                                            if (erro) {
+                                                                res.status(400).json({ status: 400, msg: erro });
+                                                            } else {
+                                                                res.status(200).json({ status: 200, msg: "Banca cadastrada com sucesso" });
+                                                                // enviarEmail("angelligruponexus@gmail.com,gabrielbatistagruponexus@gmail.com,renata@enberuniversity.com,tobiaseducanexus@gmail.com", "Mensagem sobre registro de banca!",
+                                                                //     `<p><b>O orientador(a) ${orientador}</b> registrou uma nova banca de ${id_tipoBanca === 1 ? "qualificação" : "defesa"} para o <b>orientando ${orientando}</b> que está prevista para acontecer às ${moment(data_horaPrevista).format('HH:mm')} no dia ${moment(data_horaPrevista).format('DD/MM/YYYY')}.<p/>
+                                                                // <p>Acesse o link <a href="https://www.gestorgruponexus.com.br/">https://www.gestorgruponexus.com.br/</a> para verificar!.<p/>`);
+                                                            }
+
+                                                        });
                                                 }
                                             })
                                         }
@@ -124,8 +118,8 @@ class Banca {
                                     msg: `É necessário a confirmação da taxa de pagamento pela secretaria da Enber University é para a realização do cadastro da banca de qualificação. Caso a taxa não tenha sido confirmada, não será possível realizar o cadastramento da banca.`, status: 400
                                 });
 
-                                enviarEmail("renata@enberuniversity.com", "Tentativa de registro de banca!",
-                                    `<b>${orientador}, orientador(a) do orientando ${resultados[0].orientando} tentou registrar a banca de qualificação, mas é preciso confirmar a taxa de qualificação antes de prosseguir. Para verificar,  acesse o link <a href="https://www.gestorgruponexus.com.br/">https://www.gestorgruponexus.com.br/</a>."<b/>`);
+                                // enviarEmail("renata@enberuniversity.com", "Tentativa de registro de banca!",
+                                //     `<b>${orientador}, orientador(a) do orientando ${resultados[0].orientando} tentou registrar a banca de qualificação, mas é preciso confirmar a taxa de qualificação antes de prosseguir. Para verificar,  acesse o link <a href="https://www.gestorgruponexus.com.br/">https://www.gestorgruponexus.com.br/</a>."<b/>`);
                             }
                         });
 
@@ -156,7 +150,7 @@ class Banca {
                 WHERE bancas.id_orientando = ? AND bancas.id_tipoBanca = ? OR 
                 bancas.data_horaPrevista = ?`;
 
-                    conexao.query(sql, [id_orientando, id_tipoBanca, moment(data_horaPrevista).utc().format('YYYY-MM-DD')], (erro, resultados) => {
+                    conexao.query(sql, [id_orientando, id_tipoBanca, moment(data_horaPrevista).format('YYYY-MM-DD')], (erro, resultados) => {
                         if (erro) {
                             res.status(400).json({ status: 400, msg: erro });
                             console.log(erro)
@@ -178,55 +172,53 @@ class Banca {
                                     } else {
                                         const idBanca = resultados.insertId;
 
+                                        arrayBancasXmembros.push([
+                                            id_orientador, idBanca, 1, dataHoraCriacao
+                                        ]);
+
                                         arraySelectedMembrosInternos.map(membroInterno => {
-                                            arrayBancasXmembroInterno.push([
-                                                idBanca, membroInterno.value, dataHoraCriacao
+                                            arrayBancasXmembros.push([
+                                                membroInterno.value, idBanca, 2, dataHoraCriacao
                                             ])
                                         });
 
                                         arraySelectedMembrosExternos.map(membroExterno => {
-                                            arrayBancasXmembroExterno.push([
-                                                idBanca, membroExterno.value, dataHoraCriacao
+                                            arrayBancasXmembros.push([
+                                                membroExterno.value, idBanca, 3, dataHoraCriacao
                                             ])
                                         });
 
-                                        //Cadastrar a lista de membros internos da banca
-                                        sql = `INSERT INTO bancasxmembro_interno (id_banca, id_membroInterno, dataHoraCriacao) VALUES ?`;
-                                        conexao.query(sql, [arrayBancasXmembroInterno], (erro, resultados) => {
+                                        //Cadastrar a lista de membros da banca
+                                        sql = `INSERT INTO bancasxmembros (id_usuario, id_banca, id_tipo, dataHoraCriacao) VALUES ?`;
+                                        conexao.query(sql, [arrayBancasXmembros], (erro, resultados) => {
                                             if (erro) {
                                                 res.status(400).json(erro);
                                             } else {
-                                                //Cadastrar a lista de membros externos da banca
-                                                sql = `INSERT INTO bancasxmembro_externo (id_banca, id_membroExterno, dataHoraCriacao) VALUES ?`;
-                                                conexao.query(sql, [arrayBancasXmembroExterno], (erro, resultados) => {
-                                                    if (erro) {
-                                                        res.status(400).json(erro);
-                                                    } else {
-                                                        sql = 'UPDATE orientandos SET ? WHERE id = ?';
-                                                        conexao.query(sql, [
-                                                            {
-                                                                fase_processo: 2
-                                                            }, id_orientando], (erro, resultados) => {
-                                                                if (erro) {
-                                                                    res.status(400).json({ status: 400, msg: erro });
-                                                                } else {
-                                                                    res.status(200).json({ status: 200, msg: "Banca cadastrada com sucesso" });
-                                                                    enviarEmail("angelligruponexus@gmail.com,gabrielbatistagruponexus@gmail.com,renata@enberuniversity.com,tobiaseducanexus@gmail.com", "Mensagem sobre registro de banca!",
-                                                                        `<p><b>O orientador(a) ${orientador}</b> registrou uma nova banca de ${id_tipoBanca === 1 ? "qualificação" : "defesa"} para o <b>orientando ${orientando}</b> que está prevista para acontecer às ${moment(data_horaPrevista).format('HH:mm')} no dia ${moment(data_horaPrevista).format('DD/MM/YYYY')}.<p/>
-                                                                        <p>Acesse o link <a href="https://www.gestorgruponexus.com.br/">https://www.gestorgruponexus.com.br/</a> para verificar!.<p/>`);
+                                                sql = 'UPDATE orientandos SET ? WHERE id = ?';
+                                                conexao.query(sql, [
+                                                    {
+                                                        fase_processo: 2
+                                                    }, id_orientando], (erro, resultados) => {
+                                                        if (erro) {
+                                                            res.status(400).json({ status: 400, msg: erro });
+                                                        } else {
+                                                            res.status(200).json({ status: 200, msg: "Banca cadastrada com sucesso" });
+                                                            // enviarEmail("angelligruponexus@gmail.com,gabrielbatistagruponexus@gmail.com,renata@enberuniversity.com,tobiaseducanexus@gmail.com", "Mensagem sobre registro de banca!",
+                                                            //     `<p><b>O orientador(a) ${orientador}</b> registrou uma nova banca de ${id_tipoBanca === 1 ? "qualificação" : "defesa"} para o <b>orientando ${orientando}</b> que está prevista para acontecer às ${moment(data_horaPrevista).format('HH:mm')} no dia ${moment(data_horaPrevista).format('DD/MM/YYYY')}.<p/>
+                                                            //             <p>Acesse o link <a href="https://www.gestorgruponexus.com.br/">https://www.gestorgruponexus.com.br/</a> para verificar!.<p/>`);
 
-                                                                }
-                                                            });
-                                                    }
-                                                });
+                                                        }
+                                                    });
                                             }
-                                        })
+                                        });
+
                                     }
                                 });
                             }
                         }
                     });
                 } else {
+                    //Confirmarção de pagamento da banca
                     sql = `SELECT usuarios.nome AS orientando FROM orientandos 
                     INNER JOIN usuarios ON usuarios.id = orientandos.id_usuario
                     WHERE orientandos.id = ?`;
@@ -250,10 +242,13 @@ class Banca {
 
     altera(id_banca, valores, id_permissao, res) {
         let sql = ``;
-        const { email_orientador, email_orientando, id_orientando, orientando, valor,
-            data_pagamento, observacao, id_tipoBanca, status } = valores;
+        const dataHoraCriacao = moment().format('YYYY-MM-DD HH:mm:ss');
 
         if (id_permissao.includes(permissoes.secretaria)) {
+
+            const { email_orientador, email_orientando, id_orientando, orientando, valor,
+                data_pagamento, observacao, id_tipoBanca, status } = valores;
+
             sql = 'UPDATE bancas SET ? WHERE id = ?';
             conexao.query(sql, [{ valor, data_pagamento: moment(data_pagamento).format('YYYY-MM-DD HH:mm:ss'), observacao, status }, id_banca], (erro, resultados) => {
                 if (erro) {
@@ -270,15 +265,67 @@ class Banca {
         }
 
         if (id_permissao.includes(permissoes.orientadores)) {
-            sql = `UPDATE orientandos SET ? WHERE id = ?`;
-            console.log(id_tipoBanca, id_orientando);
 
-            conexao.query(sql, [id_tipoBanca === 1 ? { status_confirmacaoBancaQ: 7 } : { status_confirmacaoBancaD: 7 }, id_orientando], (erro, resultados) => {
+            const { id_orientador, id_orientando, id_tipoBanca, data_horaPrevista, idLinhaPesquisa,
+                arraySelectedMembrosInternos, arraySelectedMembrosExternos,
+                titulo, title, resumo, palavra_chave } = valores
+
+            sql = `DELETE FROM bancasxmembros WHERE bancasxmembros.id_banca = ?`;
+            conexao.query(sql, [id_banca], (erro, resultados) => {
                 if (erro) {
                     res.status(400).json({ status: 400, msg: erro });
                 } else {
-                    res.status(200).json({ status: 200, msg: "Atualizado com sucesso." });
-                    return
+                    console.log(resultados);
+                    const arrayBancasXmembros = [];
+
+                    arrayBancasXmembros.push([
+                        id_orientador, id_banca, 1, dataHoraCriacao
+                    ]);
+
+                    arraySelectedMembrosInternos.map(membroInterno => {
+                        arrayBancasXmembros.push([
+                            membroInterno.value, id_banca, 2, dataHoraCriacao
+                        ])
+                    });
+
+                    arraySelectedMembrosExternos.map(membroExterno => {
+                        arrayBancasXmembros.push([
+                            membroExterno.value, id_banca, 3, dataHoraCriacao
+                        ])
+                    });
+
+                    console.log(arrayBancasXmembros);
+
+                    //Cadastrar a lista de membros da banca
+                    sql = `INSERT INTO bancasxmembros (id_usuario, id_banca, id_tipo, dataHoraCriacao) VALUES ?`;
+                    conexao.query(sql, [arrayBancasXmembros], (erro, resultados) => {
+                        if (erro) {
+                            res.status(400).json(erro);
+                        } else {
+                            console.log(resultados);
+                            sql = `UPDATE orientandos SET ? WHERE id = ?`;
+                            console.log(id_tipoBanca, id_orientando);
+                            conexao.query(sql, [{
+                                 id_linhaPesquisa: idLinhaPesquisa,
+                            }, id_orientando], (erro, resultados) => {
+                                if (erro) {
+                                    res.status(400).json({ status: 400, msg: erro });
+                                } else {
+                                    sql = `UPDATE bancas SET ? WHERE id = ?`;
+                                    
+                                    conexao.query(sql, [{
+                                        data_horaPrevista, id_tipoBanca, titulo, title, resumo, palavra_chave
+                                    }, id_banca], (erro, resultados) => {
+                                        if (erro) {
+                                            res.status(400).json({ status: 400, msg: erro });
+                                        } else {
+                                            res.status(200).json({ status: 200, msg: "Atualizado com sucesso." });
+                                        }
+                                    });
+                                }
+                            });
+                        }
+                    });
                 }
             });
         }
@@ -300,8 +347,8 @@ class Banca {
         DATE_FORMAT(orientandos.dataHoraInicialFaseProcesso, "%d-%m-%Y %H:%i:%s") AS dataHoraInicialFaseProcessoTb, 
         DATE_FORMAT(orientandos.dataHoraFinalFaseProcesso, "%d-%m-%Y %H:%i:%s") AS dataHoraFinalFaseProcessoTb, 
         DATE_FORMAT(orientandos.dataHoraConclusao, "%d-%m-%Y %H:%i:%s") AS dataHoraConclusaoTb,
-        ata.id AS id_ata, ata.link, ata.titulo_teseOuDissertacao, ata.status AS id_statusAta,
-        ata.quant_pag, (SELECT status.nome FROM status WHERE status.id = ata.status) AS status_ata,
+        ata.id AS id_ata, ata.status AS id_statusAta,
+        (SELECT status.nome FROM status WHERE status.id = ata.status) AS status_ata,
         DATE_FORMAT(bancas.data_horaPrevista, "%M %d, %Y") AS dtCadAta,
         DATE_FORMAT(orientandos.dt_confirmacaoTaxaQ, "%d-%m-%Y %H:%i:%s") AS dt_confirmacaoTaxaQ,
         IF(orientandos.status_confirmacaoBancaQ = 1, "AGUARDANDO", IF(orientandos.status_confirmacaoBancaQ = 7, "FINALIZADA", "CONFIRMADO")) AS status_confirmacaoBancaQ,
@@ -342,7 +389,7 @@ class Banca {
             WHEN DATE_FORMAT(ficha_avaliacao.dataHoraCriacao, "%M") = 'November' THEN DATE_FORMAT(ficha_avaliacao.dataHoraCriacao, "%d de Novembro de %Y")
             WHEN DATE_FORMAT(ficha_avaliacao.dataHoraCriacao, "%M") = 'December' THEN DATE_FORMAT(ficha_avaliacao.dataHoraCriacao, "%d de Dezembro de %Y")
         END) AS dataFichaAvaliacaoPtBr, 
-        folha_aprovacao.id AS idFolhaDeAprovacao, folha_aprovacao.titulo_teseOuDissertacao, 
+        folha_aprovacao.id AS idFolhaDeAprovacao, 
         DATE_FORMAT(folha_aprovacao.dataAprovacao, "%Y-%m-%d") AS dtFolhaAprovacao,
       	declaracao_orientacao.id As idDeclaracaoOrientacao,
         declaracao_orientacao.codigo_validacao AS codigoDeclaracaoDeOrientacao,
@@ -383,31 +430,31 @@ class Banca {
         });
     }
 
-    listaDeDeclaracoes(id_banca, res) {
+    listaDeDeclaracoesDeParticipacao(id_banca, res) {
         const sql = `SELECT usuarios.id, orientandos.id_curso, usuarios.nome AS membro, usuarios.sexo, declaracao_participacao.codigo_validacao, 
         DATE_FORMAT(declaracao_participacao.dataHoraCriacao, "%d/%m/%Y %H:%i:%s") AS dataHoraCriacao,
-        bancas.titulo AS titulo_banca, 
+        bancas.titulo AS titulo_banca, bancas.title, bancas.id_tipoBanca,
         (SELECT usuarios.nome FROM usuarios WHERE usuarios.id = orientandos.id_usuario) AS orientando,
         (SELECT cursos.nome FROM cursos WHERE cursos.id = orientandos.id_curso) AS curso,
         CONCAT(DATE_FORMAT(bancas.data_horaPrevista, "%d/%m/%Y, at "),
           TIME_FORMAT(bancas.data_horaPrevista, '%r')) AS data_horaPrevistaEnUs,
-        DATE_FORMAT(bancas.data_horaPrevista, "%d/%m/%Y às %Hh%i") AS data_horaPrevistaPtBr,
+       
         DATE_FORMAT(declaracao_participacao.dataHoraCriacao, "%M %d, %Y") AS dataDeclaracaoEnUs,
         (CASE
-            WHEN DATE_FORMAT(declaracao_participacao.dataHoraCriacao, "%M") = 'January' THEN DATE_FORMAT(declaracao_participacao.dataHoraCriacao, "dia %d de Janeiro de %Y") 
-            WHEN DATE_FORMAT(declaracao_participacao.dataHoraCriacao, "%M") = 'February' THEN DATE_FORMAT(declaracao_participacao.dataHoraCriacao, "dia %d de Fevereiro de %Y")
-            WHEN DATE_FORMAT(declaracao_participacao.dataHoraCriacao, "%M") = 'March' THEN DATE_FORMAT(declaracao_participacao.dataHoraCriacao, "dia %d de Março de %Y")
-            WHEN DATE_FORMAT(declaracao_participacao.dataHoraCriacao, "%M") = 'April' THEN DATE_FORMAT(declaracao_participacao.dataHoraCriacao, "dia %d de Abril de %Y")
-            WHEN DATE_FORMAT(declaracao_participacao.dataHoraCriacao, "%M") = 'May' THEN DATE_FORMAT(declaracao_participacao.dataHoraCriacao, "dia %d de Maio de %Y")
-            WHEN DATE_FORMAT(declaracao_participacao.dataHoraCriacao, "%M") = 'June' THEN DATE_FORMAT(declaracao_participacao.dataHoraCriacao, "dia %d de Junho de %Y")
-            WHEN DATE_FORMAT(declaracao_participacao.dataHoraCriacao, "%M") = 'July' THEN DATE_FORMAT(declaracao_participacao.dataHoraCriacao, "dia %d de Julho de %Y")
-            WHEN DATE_FORMAT(declaracao_participacao.dataHoraCriacao, "%M") = 'August' THEN DATE_FORMAT(declaracao_participacao.dataHoraCriacao, "dia %d de Agosto de %Y")
-            WHEN DATE_FORMAT(declaracao_participacao.dataHoraCriacao, "%M") = 'September' THEN DATE_FORMAT(declaracao_participacao.dataHoraCriacao, "dia %d de Setembro de %Y")
-            WHEN DATE_FORMAT(declaracao_participacao.dataHoraCriacao, "%M") = 'October' THEN DATE_FORMAT(declaracao_participacao.dataHoraCriacao, "dia %d de Outubro de %Y")
-            WHEN DATE_FORMAT(declaracao_participacao.dataHoraCriacao, "%M") = 'November' THEN DATE_FORMAT(declaracao_participacao.dataHoraCriacao, "dia %d de Novembro de %Y")
-            WHEN DATE_FORMAT(declaracao_participacao.dataHoraCriacao, "%M") = 'December' THEN DATE_FORMAT(declaracao_participacao.dataHoraCriacao, "dia %d de Dezembro de %Y")
-        END) AS dataDeclaracaoPtBr
-        FROM declaracao_participacao 
+            WHEN DATE_FORMAT(bancas.data_horaPrevista, "%M") = 'January' THEN DATE_FORMAT(bancas.data_horaPrevista, "%d de Janeiro de %Y") 
+            WHEN DATE_FORMAT(bancas.data_horaPrevista, "%M") = 'February' THEN DATE_FORMAT(bancas.data_horaPrevista, "%d de Fevereiro de %Y")
+            WHEN DATE_FORMAT(bancas.data_horaPrevista, "%M") = 'March' THEN DATE_FORMAT(bancas.data_horaPrevista, "%d de Março de %Y")
+            WHEN DATE_FORMAT(bancas.data_horaPrevista, "%M") = 'April' THEN DATE_FORMAT(bancas.data_horaPrevista, "%d de Abril de %Y")
+            WHEN DATE_FORMAT(bancas.data_horaPrevista, "%M") = 'May' THEN DATE_FORMAT(bancas.data_horaPrevista, "%d de Maio de %Y")
+            WHEN DATE_FORMAT(bancas.data_horaPrevista, "%M") = 'June' THEN DATE_FORMAT(bancas.data_horaPrevista, "%d de Junho de %Y")
+            WHEN DATE_FORMAT(bancas.data_horaPrevista, "%M") = 'July' THEN DATE_FORMAT(bancas.data_horaPrevista, "%d de Julho de %Y")
+            WHEN DATE_FORMAT(bancas.data_horaPrevista, "%M") = 'August' THEN DATE_FORMAT(bancas.data_horaPrevista, "%d de Agosto de %Y")
+            WHEN DATE_FORMAT(bancas.data_horaPrevista, "%M") = 'September' THEN DATE_FORMAT(bancas.data_horaPrevista, "%d de Setembro de %Y")
+            WHEN DATE_FORMAT(bancas.data_horaPrevista, "%M") = 'October' THEN DATE_FORMAT(bancas.data_horaPrevista, "%d de Outubro de %Y")
+            WHEN DATE_FORMAT(bancas.data_horaPrevista, "%M") = 'November' THEN DATE_FORMAT(bancas.data_horaPrevista, "%d de Novembro de %Y")
+            WHEN DATE_FORMAT(bancas.data_horaPrevista, "%M") = 'December' THEN DATE_FORMAT(bancas.data_horaPrevista, "%d de Dezembro de %Y")
+        END) AS data_horaPrevistaPtBr
+        FROM declaracao_participacao
         INNER JOIN usuarios ON usuarios.id = declaracao_participacao.id_usuario
         INNER JOIN bancas ON bancas.id = declaracao_participacao.id_banca
         INNER JOIN orientandos ON orientandos.id = bancas.id_orientando
@@ -418,29 +465,23 @@ class Banca {
             } else {
                 res.status(200).json({ status: 200, resultados });
                 console.log(resultados)
-            } 
+            }
         });
     }
 
     listaDeMembrosDaBanca(id_banca, res) {
-        const sql = `SELECT bancas.id AS id_banca, bancas.id_orientador,
-        (SELECT usuarios.nome FROM usuarios WHERE usuarios.id = bancas.id_orientador) AS orientador,
-        GROUP_CONCAT(DISTINCT bancasxmembro_interno.id_membroInterno) AS id_membros_internos, 
-        GROUP_CONCAT(DISTINCT bancasxmembro_externo.id_membroExterno) AS id_membros_externos,
-        GROUP_CONCAT(DISTINCT (SELECT usuarios.nome FROM usuarios 
-        WHERE usuarios.id = orientador.id_usuario)) AS membros_internos,
-        GROUP_CONCAT(DISTINCT (SELECT usuarios.nome FROM usuarios 
-        WHERE usuarios.id = membro_externo.id_usuario)) AS membros_externos,
-        GROUP_CONCAT(DISTINCT (SELECT usuarios.id FROM usuarios 
-        WHERE usuarios.id = orientador.id_usuario)) AS id_usuarios_internos,
-        GROUP_CONCAT(DISTINCT (SELECT usuarios.id FROM usuarios 
-        WHERE usuarios.id = membro_externo.id_usuario)) AS id_usuarios_externos
-        FROM bancas 
-        INNER JOIN bancasxmembro_interno ON bancasxmembro_interno.id_banca = bancas.id
-        INNER JOIN bancasxmembro_externo ON bancasxmembro_externo.id_banca = bancas.id
-        INNER JOIN orientador ON orientador.id = bancasxmembro_interno.id_membroInterno
-        INNER JOIN membro_externo ON membro_externo.id = bancasxmembro_externo.id_membroExterno
-        WHERE bancas.id = ?`;
+        const sql = `SELECT
+        u.id, u.nome, tmb.id 'id_tipo', tmb.nome 'tipo',
+        COALESCE(o.assinatura, me.assinatura) AS assinatura
+    FROM 
+        bancasxmembros bxm 
+        INNER JOIN usuarios u ON u.id = bxm.id_usuario
+        LEFT JOIN orientador o ON o.id_usuario = bxm.id_usuario
+        LEFT JOIN membro_externo me ON me.id_usuario = bxm.id_usuario
+        INNER JOIN tipo_membro_banca tmb ON tmb.id = bxm.id_tipo
+        LEFT JOIN bancas b ON b.id = bxm.id_banca
+    WHERE 
+        bxm.id_banca = ?`;
         conexao.query(sql, [id_banca], (erro, resultados) => {
             if (erro) {
                 res.status(400).json({ status: 400, msg: erro });

@@ -4,34 +4,24 @@ const permissoes = require('../helpers/permissoes');
 
 class Usuario {
 
-    adiciona(usuario, res) {
-        const { email } = usuario;
-        let sql = `SELECT * FROM usuarios WHERE email = ?`;
-        conexao.query(sql, [email], (erro, resultados) => {
+    adiciona(usuario, callback) {
+        const dataHoraCriacao = moment().format('YYYY-MM-DD hh:mm:ss');
+        const usuarioDatado = { ...usuario, dataHoraCriacao };
+
+        const sql = `INSERT INTO usuarios SET ?`;
+
+        conexao.query(sql, usuarioDatado, (erro, resultados) => {
             if (erro) {
-                res.status(400).json(erro);
-            } else {
-                if (resultados.length > 0) {
-                    res.status(400).json({ msg: "Já existe um usuário cadastrado com esse email.", status: 400 })
-                } else {
-                    const dataHoraCriacao = moment().format('YYYY-MM-DD hh:mm:ss');
-                    const usuarioDatado = { ...usuario, dataHoraCriacao }
-                    sql = `INSERT INTO usuarios SET ?`;
-                    conexao.query(sql, usuarioDatado, (erro, resultados) => {
-                        if (erro) {
-                            res.status(400).json(erro);
-                        } else {
-                            res.status(201).json({ status: 200, msg: "usuário cadastrado com sucesso" });
-                        }
-                    });
-                }
+                callback(erro, null);
+                return;
             }
+            callback(null, resultados);
         });
     }
 
     altera(id, valores, res) {
         const { email } = valores;
-        console.log(valores)
+
         let sql = `SELECT * FROM usuarios WHERE usuarios.email = ?`;
         conexao.query(sql, [email], (erro, resultados) => {
             if (erro) {
@@ -39,11 +29,11 @@ class Usuario {
             } else {
                 if (resultados.length > 0) {
                     sql = 'UPDATE usuarios SET ? WHERE id = ?';
-                    conexao.query(sql, [valores, id],(erro, resultados) => {
-                        if(erro) {
-                            res.status(400).json({status: 400, msg: erro})
+                    conexao.query(sql, [valores, id], (erro, resultados) => {
+                        if (erro) {
+                            res.status(400).json({ status: 400, msg: erro })
                         } else {
-                            res.status(200).json({status: 200, msg: "Atualizado com sucesso."});
+                            res.status(200).json({ status: 200, msg: "Atualizado com sucesso." });
                         }
                     });
                 } else {
@@ -54,36 +44,43 @@ class Usuario {
     }
 
     lista(res) {
-        let sql = `SELECT usuarios.id, usuarios.cpf_cnpj, usuarios.nome,
-        usuarios.email, usuarios.status,
-        DATE_FORMAT(usuarios.dataHoraCriacao, '%d/%m/%Y %H:%i:%s') AS dataHoraCriacao,
-        usuarios.senha, usuarios.id_setor
-        from usuarios
-        LEFT JOIN usuariosxpermissoes ON usuariosxpermissoes.id_usuario = usuarios.id
-        ORDER BY usuarios.nome DESC`;
+        let sql = `call lista_usuarios()`;
         conexao.query(sql, (erro, resultados) => {
             if (erro) {
                 res.status(400).json({ status: 400, msg: erro });
             } else {
-                res.status(200).json({ status: 200, resultados });  
+                res.status(200).json({ status: 200, resultados: resultados[0] });
             }
         });
 
     }
 
-    busca(id, res) {
+    buscaPorId(id, callback) {
         let sql = `SELECT usuarios.id, usuarios.nome, usuarios.email, usuarios.cpf_cnpj, usuarios.senha,
-        usuarios.id_setor
-         FROM usuarios WHERE usuarios.id = ?`;
+            usuarios.id_setor
+             FROM usuarios WHERE usuarios.id = ?`;
 
         conexao.query(sql, [id], (erro, resultados) => {
             if (erro) {
-                res.status(400).json({ status: 400, msg: erro });
+                callback({ status: 400, msg: erro }, null);
             } else {
-                res.status(200).json({ status: 200, resultados }); 
+                callback(null, resultados);
             }
         });
+    }
 
+    buscaPorEmail(email, callback) {
+        let sql = `SELECT usuarios.id, usuarios.nome, usuarios.email, usuarios.cpf_cnpj, usuarios.senha,
+            usuarios.id_setor
+             FROM usuarios WHERE usuarios.email = ?`;
+
+        conexao.query(sql, [email], (erro, resultados) => {
+            if (erro) {
+                callback({ status: 400, msg: erro }, null);
+            } else {
+                callback(null, resultados);
+            }
+        });
     }
 
     listaDePermissoes(id, res) {
@@ -97,6 +94,7 @@ class Usuario {
         conexao.query(sql, [id], (erro, resultados) => {
             if (erro) {
                 res.status(400).json({ status: 400, msg: erro });
+                console.log(resultados);
             } else {
                 res.status(200).json({ status: 200, resultados });
             }
@@ -120,13 +118,13 @@ class Usuario {
     buscaSolicitacaoDeCredenciamento(id, res) {
         const sql = `SELECT usuarios.id AS id_usuario, usuarios.nome AS gestor, 
         usuarios.email, usuarios.telefone, usuarios.cpf_cnpj, usuarios.senha,
-        instituicoes.id AS id_instituicao, instituicoes.cnpj, 
+        instituicoes.id AS id_instituicao, instituicoes.cnpj,
         instituicoes.nome_fantasia, instituicoes.razao_social,
         estados.id as id_estado, estados.nome AS estado, estados.sigla,
-        credenciamento.id AS id_credenciamento, credenciamento.observacao, 
+        credenciamento.id AS id_credenciamento, credenciamento.observacao,
         status.id AS id_status, status.nome AS status, credenciamento.id AS id_credenciamento
         FROM credenciamento 
-        inner join usuarios on usuarios.id = credenciamento.id_usuario 
+        inner join usuarios on usuarios.id = credenciamento.id_usuario
         inner join estados on estados.id = credenciamento.id_estado 
         inner join instituicoes on instituicoes.id = credenciamento.id_instituicao 
         inner join status on status.id = credenciamento.status
