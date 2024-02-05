@@ -87,8 +87,8 @@ class Tabelas {
      * 
      * @return void
      */
-    criarTbTipoTurma() {
-        const sql = `CREATE TABLE IF NOT EXISTS tipo_turma (
+    criarTbTipoTurma(sql) {
+        var sql = `CREATE TABLE IF NOT EXISTS tipo_turma (
             id INT NOT NULL AUTO_INCREMENT,
             id_tipoturma INT NOT NULL,
             turmas varchar(255),
@@ -98,20 +98,15 @@ class Tabelas {
         this.conexao.query(sql, (erro) => {
             if (erro) {
                 console.log(erro);
-            } else if (this.inserirTipoTurma === 0){
+            } else {
                 console.log("Tabela tipo_turma criada com successo!");
                 this.verificarTipoTurma();
             }
         });
     }
 
-    /**
-     * Verificar se a Tabela turma ja está preenchida
-     * 
-     * @return void
-     */
     verificarTipoTurma() {
-        const sql = `SELECT * from tipo_turma WHERE turmas = 'ENSINO_FUNDAMENTAL' OR turmas = 'ENSINO_MEDIO' OR turmas = 'ENSINO_FUNDAMENTAL_MEDIO'`;
+        const sql = `SELECT * from tipo_turma WHERE tipo_turma.turmas = 'ENSINO_FUNDAMENTAL' OR tipo_turma.turmas = 'ENSINO_MEDIO' OR tipo_turma.turmas = 'ENSINO_FUNDAMENTAL_MEDIO'`;
         this.conexao.query(sql, (erro, resultados) => {
             if (erro) {
                 console.log(erro);
@@ -125,30 +120,9 @@ class Tabelas {
         });
     }
 
-    /**
-     * Inserir especificações de cada turma no banco de dados
-     * 
-     * @return void
-     */
     inserirTipoTurma() {
-        const sql = `INSERT INTO tipo_turma (
-            id_tipoturma,
-            turmas
-        )
-        VALUES
-        (
-            1,
-            'ENSINO_FUNDAMENTAL'
-        ),
-        (
-            2,
-            'ENSINO_MEDIO'
-        ),
-        (
-            3,
-            'ENSINO_FUNDAMENTAL_MEDIO'
-        )
-        `;
+        const sql = `INSERT INTO tipo_turma (id_tipoturma, turmas)
+        VALUES (1, 'ENSINO_FUNDAMENTAL'), (2, 'ENSINO_MEDIO'), (3, 'ENSINO_FUNDAMENTAL_MEDIO');`
 
         this.conexao.query(sql, (erro) => {
             if (erro) {
@@ -1340,12 +1314,14 @@ class Tabelas {
             email TEXT NOT NULL,
             telefone VARCHAR(20) NOT NULL DEFAULT '0',
             observacao TEXT NOT NULL,
+            tipo_turma INT NOT NULL,
             id_instituicao INT NOT NULL,
             id_estado INT NOT NULL,
             dataHoraCriacao datetime NOT NULL,
             PRIMARY KEY (id),
             FOREIGN KEY (id_instituicao) REFERENCES instituicoes(id),
-            FOREIGN KEY (id_estado) REFERENCES estados(id)
+            FOREIGN KEY (id_estado) REFERENCES estados(id),
+            FOREIGN KEY (tipo_turma) REFERENCES tipo_turma(id)
           ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;`;
 
         this.conexao.query(sql, (erro) => {
