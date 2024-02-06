@@ -6,7 +6,7 @@ module.exports = app => {
 
     app.get('/instituicoes', (req, res) => {
         const cnpj = req.query.cnpj;
-        Instituicao.lista(cnpj, res); 
+        Instituicao.lista(cnpj, res);
     });
 
 }

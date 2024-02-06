@@ -115,7 +115,6 @@ class Tabelas {
                 if (resultados.length === 0) {
                     this.inserirTipoTurma();
                 }
-                //console.log("Registros de permissoes criada com sucesso")
             }
         });
     }
@@ -1308,12 +1307,59 @@ class Tabelas {
         });
     }
 
+    criarTbEstados() {
+        const sql = `CREATE TABLE IF NOT EXISTS estados (
+            id INT PRIMARY KEY AUTO_INCREMENT,
+            sigla VARCHAR(2) NOT NULL,
+            nome VARCHAR(50) NOT NULL
+          ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`;
+
+        this.conexao.query(sql, (erro) => {
+            if (erro) {
+                console.log(erro);
+            } else {
+                console.log("Tabela de estados criada com sucesso");
+                this.verificarEstados();
+            }
+        });
+    }
+
+    verificarEstados() {
+        const sql = `SELECT * from estados WHERE estados.sigla = 'AC' OR estados.sigla = 'AL' OR estados.sigla = 'AP' OR estados.sigla = 'AM' OR estados.sigla = 'BA' OR estados.sigla = 'CA' OR estados.sigla = 'DF' OR estados.sigla = 'ES' OR estados.sigla = 'GO' OR estados.sigla = 'MA' OR estados.sigla = 'MT' OR estados.sigla = 'MS' OR estados.sigla = 'MG' OR estados.sigla = 'PA' OR estados.sigla = 'PB' OR estados.sigla = 'PR' OR estados.sigla = 'PE' OR estados.sigla = 'PI' OR estados.sigla = 'RJ' OR estados.sigla = 'RN' OR estados.sigla = 'RS' OR estados.sigla = 'RO' OR estados.sigla = 'RR' OR estados.sigla = 'SC' OR estados.sigla = 'SP'`;
+        this.conexao.query(sql, (erro, resultados) => {
+            if (erro) {
+                console.log(erro);
+            } else {
+                //console.log(resultados);
+                if (resultados.length === 0) {
+                    this.inserirEstados();
+                }
+                //console.log("Registros de permissoes criada com sucesso")
+            }
+        });
+    }
+
+    inserirEstados() {
+        const sql = `INSERT INTO estados (sigla, nome)
+        VALUES ('AC', 'Acre'), ('AL', 'Alagoas'), ('AP', 'Amapa'), ('AM', 'Amazonas'), ('BA', 'Bahia'), ('CA', 'Ceará'), ('DF', 'Distrito Federal'), ('ES', 'Espírito Santo'), ('GO', 'Goiás'), ('MA', 'Maranhão'), ('MT', 'Mato Grosso'), ('MS', 'Mato Grosso do Sul'), ('MG', 'Minas Gerais'), ('PA', 'Pará'), ('PB', 'Paraíba'), ('PR', 'Paraná'), ('PE', 'Pernambuco'), ('PI', 'Piauí'), ('RJ', 'Rio de Janeiro'), ('RN', 'Rio Grande do Norte'), ('RS', 'Rio Grande do Sul'), ('RO', 'Rondônia'), ('RR', 'Roraima'), ('SC', 'Santa Catarina'), ('SP', 'São Paulo');`
+
+        this.conexao.query(sql, (erro) => {
+            if (erro) {
+                console.log(erro);
+            } else {
+                console.log("Tipos de turma criados com sucesso")
+            }
+        });
+    }
+
     criaTbAberturaTurma() {
         const sql = `CREATE TABLE IF NOT EXISTS abertura_turma (
             id INT NOT NULL AUTO_INCREMENT,
             email TEXT NOT NULL,
             telefone VARCHAR(20) NOT NULL DEFAULT '0',
             observacao TEXT NOT NULL,
+            metodologia TEXT NOT NULL,
+            curso TEXT NOT NULL,
             tipo_turma INT NOT NULL,
             id_instituicao INT NOT NULL,
             id_estado INT NOT NULL,
@@ -1451,22 +1497,6 @@ class Tabelas {
                 console.log(erro);
             } else {
                 console.log("Tabela de anexosxchamados criada com sucesso");
-            }
-        });
-    }
-
-    criarTbEstados() {
-        const sql = `CREATE TABLE IF NOT EXISTS estados (
-            id INT PRIMARY KEY AUTO_INCREMENT,
-            sigla VARCHAR(2) NOT NULL,
-            nome VARCHAR(50) NOT NULL
-          ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`;
-
-        this.conexao.query(sql, (erro) => {
-            if (erro) {
-                console.log(erro);
-            } else {
-                console.log("Tabela de estados criada com sucesso");
             }
         });
     }

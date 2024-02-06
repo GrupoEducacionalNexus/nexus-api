@@ -15,21 +15,19 @@ class AberturaTurma {
         } = abertura_turma;
 
         const dataHoraCriacao = moment().format('YYYY-MM-DD HH:mm:ss');
-        const dataInicial = `${moment().format('YYYY-MM')}-01`;
-        const dataFinal = `${moment().format('YYYY-MM')}-30`;
+        const dataInicial = `${moment().format('YYYY-MM-DD')}`;
+        const dataFinal = `${moment().format('YYYY-MM-DD')}`;
 
-        let sql = `SELECT * FROM abertura_turma WHERE abertura_turma.id_instituicao = ? AND
-        abertura_turma.dataHoraCriacao >= ? AND 
-        abertura_turma.dataHoraCriacao <= ?`;
+        let sql = `SELECT * FROM abertura_turma WHERE abertura_turma.id_instituicao = ? AND abertura_turma.dataHoraCriacao >= ? AND abertura_turma.dataHoraCriacao <= ?`;
 
-        conexao.query(sql, [id_instituicao, dataInicial, dataFinal, tipo_turma], (erro, resultados) => {
+        conexao.query(sql, [id_instituicao, dataInicial, dataFinal], (erro, resultados) => {
             if (erro) {
                 res.status(400).json({ status: 400, msg: erro });
             } else {
                 if (resultados.length > 0) {
                     res.status(400).json({ msg: `Você já solicitou abertura de turma no mês atual`, status: 400 });
                 } else {
-                    // const aberturaTurmaDatada = { id_instituicao , id_estado, email, telefone, observacao, dataHoraCriacao }
+                    //const aberturaTurmaDatada = { id_instituicao , id_estado, email, telefone, observacao, dataHoraCriacao }
                     sql = `INSERT INTO abertura_turma SET ?`;
 
                     const aberturaTurma = {
