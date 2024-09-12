@@ -14,6 +14,7 @@ const Tabelas = require('./infraestrutura/tabelas');
 //     key: fs.readFileSync('./ssl/privkey.pem'),
 //     cert: fs.readFileSync('./ssl/cert.pem'),
 // };
+
 Tabelas.init(conexao);
 const app = customExpress();
 const port = process.env.PORT || 3000;
