@@ -18,13 +18,17 @@ module.exports = app => {
     });
 
     app.get('/estados/:id/checklist_credenciamento', Auth.verificaJWT, (req, res) => {
-        if (req.id_permissao.includes(permissoes.admin) || req.id_permissao.includes(permissoes.convenios)) {
+        if (
+            req.id_permissao.includes(permissoes.admin) || 
+            req.id_permissao.includes(permissoes.convenios) || 
+            req.id_permissao.includes(permissoes.gestorInstituicao) // Certifique-se de que a permissão está incluída corretamente
+        ) {
             const idEstado = req.params.id;
-            
             Estado.listaDeChecklistDoCredenciamento(idEstado, res);
             return;
         }
         res.status(400).send({ auth: false, permissoes: false, message: 'Você não tem permissão para acessar essa página.' });
     });
+    
  
 }
