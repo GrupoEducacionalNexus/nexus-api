@@ -29,6 +29,7 @@ module.exports = (app) => {
             const idEstado = req.params.id;
             Estado.listaDeChecklistDoCredenciamento(idEstado, res);
         });
+
     });
 
 };
