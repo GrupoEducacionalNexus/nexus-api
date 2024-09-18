@@ -79,6 +79,7 @@ class Credenciamento {
                                         <p>E-MAIL DO POLO:  ${email.toUpperCase()}</p>
                                         <p>TELEFONE:  ${telefone.toUpperCase()}</p>
                                     <b/>`);
+                                    
                             });
                             return
                         }

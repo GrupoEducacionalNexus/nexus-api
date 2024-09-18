@@ -1,4 +1,5 @@
 const nodemailer = require('nodemailer');
+
 const transporter = nodemailer.createTransport({
     host: "email-ssl.com.br",
     secure: true,
@@ -7,28 +8,24 @@ const transporter = nodemailer.createTransport({
         user: "naoresponda@enberuniversity.com",
         pass: "8D1@Zcek"
     },
-    pool: true,
+    pool: true, // Reutilização de conexão com pool
 });
 
-const enviarEmail = (to, subject, text) => {
-    try {
-        var mailOptions = {
-            from: 'naoresponda@enberuniversity.com',
-            to: to,
-            subject: subject,  
-            text: text, 
-            html: `<b>${text}</b>`
-        };
+const enviarEmail = async (to, subject, text) => {
+    const mailOptions = {
+        from: 'naoresponda@enberuniversity.com',
+        to: to,
+        subject: subject,
+        text: text,
+        html: `<b>${text}</b>`,
+    };
 
-        transporter.sendMail(mailOptions, function (error, info) {
-            if (error) {
-                console.log(error);
-                return;
-            }
-            console.log('Message sent: ' + info.response);
-            return;
-        });
+    try {
+        const info = await transporter.sendMail(mailOptions);
+        console.log('Message sent: ' + info.response);
+        return info;
     } catch (error) {
+        console.error('Erro ao enviar email:', error);
         return error;
     }
 }
