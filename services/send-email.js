@@ -1,23 +1,24 @@
+// services/send-email.js
 const nodemailer = require('nodemailer');
+require('dotenv').config();
 
 const transporter = nodemailer.createTransport({
-    host: "email-ssl.com.br",
+    host: "smtp.gmail.com",
     secure: true,
     port: 465,
     auth: {
-        user: "naoresponda@enberuniversity.com",
-        pass: "8D1@Zcek"
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS
     },
     pool: true, // Reutilização de conexão com pool
 });
 
-const enviarEmail = async (to, subject, text) => {
+const enviarEmail = async (to, subject, html) => {
     const mailOptions = {
-        from: 'naoresponda@enberuniversity.com',
+        from: process.env.EMAIL_USER,
         to: to,
         subject: subject,
-        text: text,
-        html: `<b>${text}</b>`,
+        html: html,
     };
 
     try {
@@ -26,7 +27,7 @@ const enviarEmail = async (to, subject, text) => {
         return info;
     } catch (error) {
         console.error('Erro ao enviar email:', error);
-        return error;
+        throw error;
     }
 }
 

@@ -109,27 +109,37 @@ class Credenciamento {
         const io = socket.getIO();
         const { cnpj, razao_social, nome_fantasia, email, telefone } = credenciamento;
 
-        // Busca os usuários do setor 2 para notificação
-        const usuarios = await listaDeUsuariosDoSetor(2);
+        try {
+            // Busca os usuários do setor 2 para notificação
+            const usuarios = await listaDeUsuariosDoSetor(2);
 
-        for (const usuario of usuarios) {
-            const conectado = conectados.find(objeto => objeto.nome === usuario.nome);
-            if (conectado) {
-                io.to(conectado.id).emit('notification', { message: `O CNPJ ${cnpj.toUpperCase()} com a razão social ${razao_social.toUpperCase()} solicitou credenciamento` });
+            for (const usuario of usuarios) {
+                const conectado = conectados.find(objeto => objeto.nome === usuario.nome);
+                if (conectado) {
+                    io.to(conectado.id).emit('notification', { message: `O CNPJ ${cnpj.toUpperCase()} com a razão social ${razao_social.toUpperCase()} solicitou credenciamento` });
+                }
+
+                await registrarNoficacao(`O CNPJ ${cnpj.toUpperCase()} com a razão social "${razao_social.toUpperCase()}" solicitou credenciamento`, 7, usuario.id_usuario);
+                
+                // Enviar e-mail
+                try {
+                    const resultadoEmail = await enviarEmail(
+                        `solicitacoes@centroeducanexus.com.br`,
+                        "SOLICITAÇÃO DE CREDENCIAMENTO",
+                        `SEGUE OS DADOS DO SOLICITANTE:<br/>
+                        <p>CNPJ: ${cnpj.toUpperCase()}</p>
+                        <p>RAZÃO SOCIAL: ${razao_social.toUpperCase()}</p>
+                        <p>NOME FANTASIA: ${nome_fantasia.toUpperCase()}</p>
+                        <p>E-MAIL DO POLO: ${email.toUpperCase()}</p>
+                        <p>TELEFONE: ${telefone.toUpperCase()}</p>`
+                    );
+                    console.log(`E-mail enviado para solicitacoes@centroeducanexus.com.br:`, resultadoEmail.response);
+                } catch (erroEmail) {
+                    console.error(`Erro ao enviar e-mail para solicitacoes@centroeducanexus.com.br:`, erroEmail);
+                }
             }
-            await registrarNoficacao(`O CNPJ ${cnpj.toUpperCase()} com a razão social "${razao_social.toUpperCase()}" solicitou credenciamento`, 7, usuario.id_usuario);
-            await enviarEmail(
-                `solicitacoes@centroeducanexus.com.br`,
-                "SOLICITAÇÃO DE CREDENCIAMENTO",
-                `<b>
-                    <p>SEGUE OS DADOS DO SOLICITANTE:</p>
-                    <p>CNPJ: ${cnpj.toUpperCase()}</p>
-                    <p>RAZÃO SOCIAL: ${razao_social.toUpperCase()}</p>
-                    <p>NOME FANTASIA: ${nome_fantasia.toUpperCase()}</p>
-                    <p>E-MAIL DO POLO: ${email.toUpperCase()}</p>
-                    <p>TELEFONE: ${telefone.toUpperCase()}</p>
-                <b/>`
-            );
+        } catch (error) {
+            console.error("Erro ao notificar usuários:", error);
         }
     }
 
