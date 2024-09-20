@@ -25,7 +25,7 @@ module.exports = (app) => {
     });
 
     app.get('/estados/:id/checklist_credenciamento', Auth.verificaJWT, (req, res) => {
-        verificarPermissoes(req, [permissoes.admin, permissoes.convenios, permissoes.gestorInstituicao], res, () => {
+        verificarPermissoes(req, [permissoes.admin, permissoes.convenios, permissoes.processoCredenciamento], res, () => {
             const idEstado = req.params.id;
             Estado.listaDeChecklistDoCredenciamento(idEstado, res);
         });
