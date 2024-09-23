@@ -1,11 +1,11 @@
 const nodemailer = require('nodemailer');
 const transporter = nodemailer.createTransport({
-    host: "email-ssl.com.br",
+    host: "smtp.gmail.com",
     secure: true,
     port: 465,
     auth: {
-        user: "naoresponda@enberuniversity.com",
-        pass: "8D1@Zcek"
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS
     },
     pool: true,
 });
@@ -13,7 +13,7 @@ const transporter = nodemailer.createTransport({
 const enviarEmail = (to, subject, text) => {
     try {
         var mailOptions = {
-            from: 'naoresponda@enberuniversity.com',
+            from: process.env.EMAIL_USER,
             to: to,
             subject: subject,  
             text: text, 
