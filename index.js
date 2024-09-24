@@ -8,13 +8,6 @@ const customExpress = require('./config/customExpress');
 const conexao = require("./infraestrutura/conexao");
 const Tabelas = require('./infraestrutura/tabelas');
 
-// const fs = require('fs');
-
-// var options = {
-//     key: fs.readFileSync('./ssl/privkey.pem'),
-//     cert: fs.readFileSync('./ssl/cert.pem'),
-// };
-
 Tabelas.init(conexao);
 const app = customExpress();
 const port = process.env.PORT || 3000;

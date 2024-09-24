@@ -13,7 +13,7 @@ const PERMISSOES = {
     professor: 12,
     alunos: 13,
     diretoriaGeral: 14,
-    processoCredenciamento: 15
+    gestorInstituicao: 15
 }
 
 module.exports = PERMISSOES;
