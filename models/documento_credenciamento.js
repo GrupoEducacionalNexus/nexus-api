@@ -1,6 +1,7 @@
 // src/models/DocumentoCredenciamento.js
 
 const moment = require('moment');
+const AWS = require("aws-sdk");
 const conexao = require('../infraestrutura/conexao');
 const socket = require('../services/socket');
 const conectados = require('../services/conectados');
@@ -176,6 +177,39 @@ class DocumentoCredenciamento {
             res.status(400).json({ status: 400, msg: erro.message || erro });
         }
     }
+
+    // deleta(id, anexo, res) {
+    //     const S3_BUCKET = 'gestor-administrativo';
+    //     const s3 = new AWS.S3({
+    //         accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+    //         secretAccessKey: process.env.AWS_SECRET_KEY,
+    //         region: 'us-east-1',
+    //     });
+
+    //     const params = {
+    //         Bucket: S3_BUCKET,
+    //         Key: anexo.split('/').pop(),  // Extrair o nome do arquivo da URL
+    //     };
+
+    //     // Deletar o arquivo do S3
+    //     s3.deleteObject(params, (err, data) => {
+    //         if (err) {
+    //             console.error('Erro ao deletar do S3:', err);
+    //             return res.status(500).json({ status: 500, msg: 'Erro ao deletar arquivo do S3' });
+    //         }
+
+    //         // Deletar o documento do banco de dados
+    //         const sql = 'DELETE FROM documento_credenciamento WHERE id = ?';
+    //         conexao.query(sql, [id], (erro, resultados) => {
+    //             if (erro) {
+    //                 console.error('Erro ao deletar do banco:', erro);
+    //                 return res.status(400).json({ status: 400, msg: erro });
+    //             } else {
+    //                 res.status(200).json({ status: 200, msg: 'Documento deletado com sucesso.' });
+    //             }
+    //         });
+    //     });
+    // }
 }
 
 module.exports = new DocumentoCredenciamento;
