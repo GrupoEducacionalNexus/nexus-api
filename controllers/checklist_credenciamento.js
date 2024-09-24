@@ -26,19 +26,19 @@ module.exports = (app) => {
     });
 
     app.get('/checklist_credenciamento', Auth.verificaJWT, (req, res) => {
-        verificarPermissoes(req, [permissoes.admin, permissoes.convenios, permissoes.gestorInstituicao], res, () => {
+        verificarPermissoes(req, [permissoes.admin, permissoes.convenios, permissoes.processoCredenciamento], res, () => {
             ChecklistCredenciamento.lista(res);
         });
     });
 
     app.get('/checklist_credenciamento/:id/documento_credenciamento', Auth.verificaJWT, (req, res) => {
-        verificarPermissoes(req, [permissoes.admin, permissoes.convenios, permissoes.gestorInstituicao], res, () => {
+        verificarPermissoes(req, [permissoes.admin, permissoes.convenios, permissoes.processoCredenciamento], res, () => {
             ChecklistCredenciamento.anexosDoChecklistCredenciamento(req.params.id, req.query.id_credenciamento, res);
         });
     });
 
     app.get('/checklist_credenciamento/:id/instrucoes', Auth.verificaJWT, (req, res) => {
-        verificarPermissoes(req, [permissoes.admin, permissoes.convenios, permissoes.gestorInstituicao], res, () => {
+        verificarPermissoes(req, [permissoes.admin, permissoes.convenios, permissoes.processoCredenciamento], res, () => {
             ChecklistCredenciamento.listaDeInstrucoes(req.params.id, res);
         });
     });
