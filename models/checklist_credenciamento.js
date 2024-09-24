@@ -1,3 +1,4 @@
+// src/models/checklist_credenciamento.js
 const moment = require('moment');
 const conexao = require('../infraestrutura/conexao');
 

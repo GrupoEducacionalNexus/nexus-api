@@ -1,3 +1,4 @@
+// nexus-api/controllers/checklist_credenciamento.js
 const Auth = require('../models/auth');
 const ChecklistCredenciamento = require('../models/checklist_credenciamento');
 const permissoes = require('../helpers/permissoes');

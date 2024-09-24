@@ -1,3 +1,4 @@
+// nexus-api/helpers/permissoes.js
 const PERMISSOES = {
     admin: 1,
     secretaria: 2,
