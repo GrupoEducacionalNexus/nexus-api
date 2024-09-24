@@ -1,4 +1,7 @@
+// services/send-email.js
 const nodemailer = require('nodemailer');
+require('dotenv').config();
+
 const transporter = nodemailer.createTransport({
     host: "smtp.gmail.com",
     secure: true,
@@ -7,29 +10,24 @@ const transporter = nodemailer.createTransport({
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASS
     },
-    pool: true,
+    pool: true, // Reutilização de conexão com pool
 });
 
-const enviarEmail = (to, subject, text) => {
-    try {
-        var mailOptions = {
-            from: process.env.EMAIL_USER,
-            to: to,
-            subject: subject,  
-            text: text, 
-            html: `<b>${text}</b>`
-        };
+const enviarEmail = async (to, subject, html) => {
+    const mailOptions = {
+        from: process.env.EMAIL_USER,
+        to: to,
+        subject: subject,
+        html: html,
+    };
 
-        transporter.sendMail(mailOptions, function (error, info) {
-            if (error) {
-                console.log(error);
-                return;
-            }
-            console.log('Message sent: ' + info.response);
-            return;
-        });
+    try {
+        const info = await transporter.sendMail(mailOptions);
+        console.log('Message sent: ' + info.response);
+        return info;
     } catch (error) {
-        return error;
+        console.error('Erro ao enviar email:', error);
+        throw error;
     }
 }
 
