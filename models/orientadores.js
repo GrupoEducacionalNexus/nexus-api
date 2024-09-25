@@ -11,14 +11,14 @@ class Orientador {
         conexao.query(sql, (erro, resultados) => {
             if (erro) {
                 res.status(400).json({ status: 400, msg: erro });
-            } else { 
+            } else {
                 res.status(200).json({ status: 200, resultados });
-            } 
+            }
         });
     }
 
     listaDeOrientandos(id_orientador, filtro, res) {
-        const {nome, idLinhaPesquisa, idFaseProcesso} = filtro;
+        const { nome, idLinhaPesquisa, idFaseProcesso } = filtro;
         //console.log(id_orientador, nome, idLinhaPesquisa, idFaseProcesso);
 
         const sql = `SELECT orientandos.id, usuarios.id as id_usuario, usuarios.nome, usuarios.email, cursos.id as id_curso, cursos.nome as curso,
@@ -45,7 +45,7 @@ class Orientador {
         ${nome.length > 0 ? `AND usuarios.nome LIKE '%${nome}%'` : ``} 
         ${parseInt(idLinhaPesquisa) > 0 ? `AND linhas_pesquisas.id = ${idLinhaPesquisa}` : ``}
         ${parseInt(idFaseProcesso) > 0 ? `AND tipo_banca.id = ${idFaseProcesso}` : ``}
-        ORDER BY orientandos.id DESC`; 
+        ORDER BY orientandos.id DESC`;
 
         conexao.query(sql, [id_orientador], (erro, resultados) => {
             if (erro) {
@@ -57,23 +57,34 @@ class Orientador {
     }
 
     listaDeBancas(id_orientador, id_tipoBanca, res) {
-        const sql = `SELECT bancas.id, bancas.title, bancas.titulo, orientandos.id AS id_orientando, linhas_pesquisas.id_areaConcentracao, 
-        linhas_pesquisas.nome AS linha_pesquisa, areas_concentracao.nome AS areaConcentracao,
+        const sql = `SELECT 
+        bancas.id, 
+        bancas.title, 
+        bancas.titulo, 
+        orientandos.id AS id_orientando, 
+        linhas_pesquisas.id_areaConcentracao, 
+        linhas_pesquisas.nome AS linha_pesquisa, 
+        areas_concentracao.nome AS areaConcentracao,
         DATE_FORMAT(bancas.data_horaPrevista,'%d/%m/%Y %H:%i:%s') AS data_horaPrevista, 
         DATE_FORMAT(bancas.data_horaPrevista,'%Y/%m/%d') AS dataFormatAmericano,
-        usuarios.nome AS orientando, usuarios.email AS email_orientando, cursos.nome AS curso, 
-        tipo_banca.id AS id_tipoBanca, tipo_banca.nome AS tipo_banca, bancas.status,
+        usuarios.nome AS orientando, usuarios.email AS email_orientando, 
+        cursos.nome AS curso, 
+        tipo_banca.id AS id_tipoBanca, 
+        tipo_banca.nome AS tipo_banca, 
+        bancas.status,
         (SELECT usuarios.id FROM usuarios WHERE usuarios.id = bancas.id_orientador) AS id_orientador,
         (SELECT UPPER(usuarios.nome) FROM usuarios WHERE usuarios.id = bancas.id_orientador) AS orientador,
         (SELECT usuarios.email FROM usuarios WHERE usuarios.id = bancas.id_orientador) AS email_orientador,
         (SELECT orientador.assinatura FROM orientador WHERE orientador.id_usuario = bancas.id_orientador) 
-        AS assinatura_presidente, orientandos.id_curso, 
+        AS assinatura_presidente, 
+        orientandos.id_curso, 
         (SELECT tipo_banca.nome FROM tipo_banca WHERE tipo_banca.id = orientandos.fase_processo) AS fase_processo,
         DATE_FORMAT(orientandos.dataHoraInicialFaseProcesso, "%d-%m-%Y %H:%i:%s") AS dataHoraInicialFaseProcessoTb, 
         DATE_FORMAT(orientandos.dataHoraFinalFaseProcesso, "%d-%m-%Y %H:%i:%s") AS dataHoraFinalFaseProcessoTb, 
         DATE_FORMAT(orientandos.dataHoraConclusao, "%d-%m-%Y %H:%i:%s") AS dataHoraConclusaoTb,
-        ata.id AS id_ata, ata.link, ata.titulo_teseOuDissertacao, ata.status AS id_statusAta,
-        ata.quant_pag, (SELECT status.nome FROM status WHERE status.id = ata.status) AS status_ata,
+        ata.id AS id_ata, 
+        ata.status AS id_statusAta,
+        (SELECT status.nome FROM status WHERE status.id = ata.status) AS status_ata,
         DATE_FORMAT(bancas.data_horaPrevista, "%M %d, %Y") AS dtCadAta,
         DATE_FORMAT(orientandos.dt_confirmacaoTaxaQ, "%d-%m-%Y %H:%i:%s") AS dt_confirmacaoTaxaQ,
         IF(orientandos.status_confirmacaoBancaQ = 1, "AGUARDANDO", IF(orientandos.status_confirmacaoBancaQ = 7, "FINALIZADA", "CONFIRMADO")) AS status_confirmacaoBancaQ,
@@ -90,16 +101,26 @@ class Orientador {
 		INNER JOIN usuarios ON membro_externo.id_usuario = usuarios.id
 		WHERE bancas.id_membroExterno = membro_externo.id_usuario)
         AS membro_externo,
-         (SELECT membro_externo.assinatura FROM membro_externo WHERE bancas.id_membroExterno = membro_externo.id_usuario)
-        AS assinatura_membroExterno,
-        ficha_avaliacao.id AS id_fichaAvaliacao, orientandos.id_linhaPesquisa,
-        ficha_avaliacao.titulo_projeto, ficha_avaliacao.pergunta_condutora,
-        ficha_avaliacao.hipotese, ficha_avaliacao.fundamentacao_teorica,
-        ficha_avaliacao.objetivo, ficha_avaliacao.metodo, ficha_avaliacao.cronograma,
-        ficha_avaliacao.conclusao_avaliacao, ficha_avaliacao.resumoQ1,
-        ficha_avaliacao.resumoQ2, ficha_avaliacao.resumoQ2, ficha_avaliacao.resumoQ3,
-        ficha_avaliacao.resumoQ4, ficha_avaliacao.resumoQ5, ficha_avaliacao.resumoQ6,
-        ficha_avaliacao.resumoQ7, ficha_avaliacao.resumoQ8,
+        (SELECT membro_externo.assinatura FROM membro_externo WHERE bancas.id_membroExterno = membro_externo.id_usuario) AS assinatura_membroExterno,
+        ficha_avaliacao.id AS id_fichaAvaliacao, 
+        orientandos.id_linhaPesquisa,
+        ficha_avaliacao.titulo_projeto, 
+        ficha_avaliacao.pergunta_condutora,
+        ficha_avaliacao.hipotese, 
+        ficha_avaliacao.fundamentacao_teorica,
+        ficha_avaliacao.objetivo, 
+        ficha_avaliacao.metodo, 
+        ficha_avaliacao.cronograma,
+        ficha_avaliacao.conclusao_avaliacao, 
+        ficha_avaliacao.resumoQ1,
+        ficha_avaliacao.resumoQ2, 
+        ficha_avaliacao.resumoQ2, 
+        ficha_avaliacao.resumoQ3,
+        ficha_avaliacao.resumoQ4, 
+        ficha_avaliacao.resumoQ5, 
+        ficha_avaliacao.resumoQ6,
+        ficha_avaliacao.resumoQ7, 
+        ficha_avaliacao.resumoQ8,
         (CASE
             WHEN DATE_FORMAT(ficha_avaliacao.dataHoraCriacao, "%M") = 'January' THEN DATE_FORMAT(ficha_avaliacao.dataHoraCriacao, "%d de Janeiro de %Y") 
             WHEN DATE_FORMAT(ficha_avaliacao.dataHoraCriacao, "%M") = 'February' THEN DATE_FORMAT(ficha_avaliacao.dataHoraCriacao, "%d de Fevereiro de %Y")
@@ -150,7 +171,7 @@ class Orientador {
                 res.status(400).json({ status: 400, msg: erro });
             } else {
                 res.status(200).json({ status: 200, resultados, id_tipoBanca });
-                console.log(resultados);
+                console.log("orientadores",resultados);
             }
         });
     }
@@ -164,13 +185,13 @@ class Orientador {
         orientacao.anexo
         FROM orientacao
         INNER JOIN orientandos ON orientacao.id_orientando = orientandos.id
-        WHERE orientacao.id_orientador = ? ORDER BY orientacao.id DESC`;  
+        WHERE orientacao.id_orientador = ? ORDER BY orientacao.id DESC`;
 
         conexao.query(sql, [id_orientador], (erro, resultados) => {
             if (erro) {
                 res.status(400).json({ status: 400, msg: erro });
             } else {
-                res.status(200).json({ status: 200, resultados});
+                res.status(200).json({ status: 200, resultados });
             }
         });
     }
@@ -183,7 +204,7 @@ class Orientador {
             if (erro) {
                 res.status(400).json({ status: 400, msg: erro });
             } else {
-                res.status(200).json({ status: 200, resultados }); 
+                res.status(200).json({ status: 200, resultados });
             }
         });
 

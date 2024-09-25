@@ -6,13 +6,22 @@ class Ata {
     
     adiciona(ata, res) {
         console.log(ata)
-        const {id_banca, 
+        const {
+            id_banca, 
             titulo_teseOuDissertacao, 
-            quant_pag, status, link_ata} = ata;
+            quant_pag, 
+            status
+        } = ata;
 
         let dataHoraCriacao = moment().format('YYYY-MM-DD HH:mm:ss');
 
-        const ataDatada = { link: link_ata, titulo_teseOuDissertacao, quant_pag: parseInt(quant_pag), status: parseInt(status), dataHoraCriacao, id_banca };
+        const ataDatada = {
+            titulo_teseOuDissertacao, 
+            quant_pag: parseInt(quant_pag), 
+            status: parseInt(status), 
+            dataHoraCriacao, 
+            id_banca 
+        };
 
         let sql = `SELECT * FROM ata WHERE ata.id_banca = ?`;
 
@@ -42,9 +51,15 @@ class Ata {
             id_banca,
             titulo_teseOuDissertacao,
             quant_pag,
-            status } = valores; 
+            status 
+        } = valores; 
 
-            const ataDatada = { titulo_teseOuDissertacao, quant_pag: parseInt(quant_pag), status: parseInt(status), id_banca };
+            const ataDatada = { 
+                titulo_teseOuDissertacao, 
+                quant_pag: parseInt(quant_pag), 
+                status: parseInt(status), 
+                id_banca 
+            };
         
         let sql = 'UPDATE ata SET ? WHERE id = ?';
         conexao.query(sql, [ataDatada, id_ata], (erro, resultados) => {

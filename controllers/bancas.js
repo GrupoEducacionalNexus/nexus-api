@@ -47,9 +47,12 @@ module.exports = app => {
     });
 
     app.get('/bancas', Auth.verificaJWT, (req, res) => {
-        if (req.id_permissao.includes(permissoes.admin) || req.id_permissao.includes(permissoes.secretaria) ||
-        req.id_permissao.includes(permissoes.orientadores) || req.id_permissao.includes(permissoes.coordenador)
-            || req.id_permissao.includes(permissoes.diretor)) {
+        if (
+            req.id_permissao.includes(permissoes.admin) || 
+            req.id_permissao.includes(permissoes.secretaria) ||
+            req.id_permissao.includes(permissoes.orientadores) || 
+            req.id_permissao.includes(permissoes.coordenador) || 
+            req.id_permissao.includes(permissoes.diretor)) {
             const id_tipoBanca = req.query.tipo_banca;
             const id_areaConcentracao = req.query.id_areaConcentracao;
             Banca.lista(id_tipoBanca, id_areaConcentracao, res);
