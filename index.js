@@ -16,7 +16,7 @@ const Tabelas = require('./infraestrutura/tabelas');
 // };
 Tabelas.init(conexao);
 const app = customExpress();
-const port = process.env.PORT || 4000;
+const port = process.env.PORT || 3000;
 const server = require('http').createServer(app);
 
 const socket = require('./services/socket');
