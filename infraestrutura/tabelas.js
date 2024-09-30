@@ -679,7 +679,7 @@ class Tabelas {
             vinculo_institucional int(11) NOT NULL DEFAULT '0',
             id_usuario int(11) NOT NULL,
             codigo_validacao varchar(255) DEFAULT '0',  
-            tipo_membro int(11) NOT NULL, 
+            tipo_membro int(11) NOT NULL,
             comoSoube text NOT NULL,
             dataHoraCriacao datetime NOT NULL,
             PRIMARY KEY(id)  
@@ -1330,11 +1330,9 @@ class Tabelas {
             if (erro) {
                 console.log(erro);
             } else {
-                //console.log(resultados);
                 if (resultados.length === 0) {
                     this.inserirEstados();
                 }
-                //console.log("Registros de permissoes criada com sucesso")
             }
         });
     }
@@ -1347,7 +1345,7 @@ class Tabelas {
             if (erro) {
                 console.log(erro);
             } else {
-                console.log("Tipos de turma criados com sucesso")
+                console.log("Estados criados com sucesso")
             }
         });
     }

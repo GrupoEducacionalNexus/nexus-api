@@ -11,10 +11,10 @@ module.exports = app => {
 
     app.get('/abertura_turma', Auth.verificaJWT, (req, res) => {
         if (req.id_permissao.includes(permissoes.admin) || req.id_permissao.includes(permissoes.convenios)) {
-            const {dataAtual, cnpj, nome_fantasia, data_solicitacao, estado} = req.query;
+            const {dataAtual, cnpj, nome_fantasia, data_solicitacao, estado, tipo_turma} = req.query;
             console.log(req.query);
             
-            AberturaTurma.lista({dataAtual, cnpj, nome_fantasia, data_solicitacao, estado}, res);
+            AberturaTurma.lista({dataAtual, cnpj, nome_fantasia, data_solicitacao, estado, tipo_turma}, res);
             return;
         }
         res.status(400).send({ auth: false, permissoes: false, message: 'Você não tem permissão para acessar essa página.' });

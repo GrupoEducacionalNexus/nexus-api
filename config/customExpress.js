@@ -8,6 +8,7 @@ const helmet = require('helmet');
 module.exports = () => {
   const app = express();
   app.use(cors({ origin: ['https://www.gestorgruponexus.com.br', 'http://localhost:3000'], credentials: true }));
+  //app.use(cors());
   app.use(express.urlencoded({ limit: '50mb', extended: false, parameterLimit: 50000 }));
   app.use(express.json({ extended: false, limit: '50mb' }));
 

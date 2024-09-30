@@ -15,8 +15,8 @@ class AberturaTurma {
         } = abertura_turma;
 
         const dataHoraCriacao = moment().format('YYYY-MM-DD HH:mm:ss');
-        const dataInicial = `${moment().format('YYYY-MM-DD')}`;
-        const dataFinal = `${moment().format('YYYY-MM-DD')}`;
+        const dataInicial = `${moment().format('YYYY-MM')}-01`;
+        const dataFinal = `${moment().format('YYYY-MM')}-29`;
 
         let sql = `SELECT * FROM abertura_turma WHERE abertura_turma.id_instituicao = ? AND abertura_turma.dataHoraCriacao >= ? AND abertura_turma.dataHoraCriacao <= ?`;
 
