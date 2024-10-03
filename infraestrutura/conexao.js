@@ -1,4 +1,5 @@
-const mysql = require('mysql');
+// infraestrutura/conexao.js
+const mysql = require('mysql2');
 
 const conexao = mysql.createPool({
     host: process.env.DB_HOST,
