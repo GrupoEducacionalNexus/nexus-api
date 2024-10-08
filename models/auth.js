@@ -1,9 +1,9 @@
-const moment = require('moment');
+// models/auth.js
 const conexao = require('../infraestrutura/conexao');
 let jwt = require('jsonwebtoken');
 
 class Auth { 
-    
+
     login(auth, res) {
         const { email, senha } = auth;
         const sql = `SELECT usuarios.id, usuarios.email, usuarios.nome, usuarios.senha, usuarios.id_setor,
@@ -20,7 +20,7 @@ class Auth {
             } else {
                 if (resultados.length > 0) {
                     let id_permissao = [];
-                    for(let i = 0; i < resultados.length; i++) {
+                    for (let i = 0; i < resultados.length; i++) {
                         id_permissao.push(resultados[i].id_permissao);
                     }
         
@@ -31,9 +31,45 @@ class Auth {
                     let permissao = resultados[0].permissao;
                     let id_setor = resultados[0].id_setor;
                     
-                    const token = jwt.sign({ id, nome, email, id_permissao, permissao, id_setor }, process.env.SECRET, {});
+                    // Adicionando logs para depuração
+                    console.log('id:', id);
+                    console.log('nome:', nome);
+                    console.log('email:', email);
+                    console.log('id_permissao:', id_permissao);
+                    console.log('permissao:', permissao);
+                    console.log('id_setor:', id_setor);
+                    console.log('process.env.SECRET:', process.env.SECRET);
 
-                    res.status(200).send({ auth: true, token: token, id, nome, email, id_permissao, permissao, id_setor, status: 200 });
+                    // Verificando se process.env.SECRET está definido
+                    if (!process.env.SECRET) {
+                        console.error('A variável SECRET não está definida.');
+                        res.status(500).send('Erro no servidor');
+                        return;
+                    }
+
+                    try {
+                        // Removendo o objeto de opções vazio ou definindo opções válidas
+                        const token = jwt.sign(
+                            { id, nome, email, id_permissao, permissao, id_setor },
+                            process.env.SECRET,
+                            { expiresIn: '1h' } // Definindo opções se necessário
+                        );
+
+                        res.status(200).send({
+                            auth: true,
+                            token: token,
+                            id,
+                            nome,
+                            email,
+                            id_permissao,
+                            permissao,
+                            id_setor,
+                            status: 200
+                        });
+                    } catch (error) {
+                        console.error('Erro ao gerar o token JWT:', error);
+                        res.status(500).json({ status: 500, msg: 'Erro no servidor ao gerar token' });
+                    }
                 } else {
                     res.status(400).json({ status: 400, msg: "Email, senha ou nível de acesso estão incorretos!" });
                 }
@@ -55,12 +91,11 @@ class Auth {
                 req.email = decoded.email;
                 req.id_permissao = decoded.id_permissao;
                 req.permissao = decoded.permissao;
-                req.id_setor = decoded.id_setor
+                req.id_setor = decoded.id_setor;
                 next();
             });
         }
     }
 }
 
-
-module.exports = new Auth;
+module.exports = new Auth();

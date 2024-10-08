@@ -36,7 +36,7 @@ module.exports = () => {
         "require-sri-for": [],
         "report-uri": [],
         "strict-origin-when-cross-origin": [] // add this directive
-      }
+    } 
     }));
   consign().include('controllers').into(app);
   return app;
