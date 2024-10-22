@@ -66,7 +66,8 @@ class Orientador {
             cursos.nome AS curso,
             tipo_banca.id AS id_tipoBanca, 
             tipo_banca.nome AS fase_processo,
-            orientandos.status_confirmacaoBancaD
+            orientandos.status_confirmacaoBancaD,
+            orientandos.status_confirmacaoBancaQ
         FROM orientandos
         LEFT JOIN cursos ON orientandos.id_curso = cursos.id
         LEFT JOIN usuarios ON orientandos.id_usuario = usuarios.id
