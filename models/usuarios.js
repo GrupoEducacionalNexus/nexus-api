@@ -116,19 +116,32 @@ class Usuario {
     }
 
     buscaSolicitacaoDeCredenciamento(id, res) {
-        const sql = `SELECT usuarios.id AS id_usuario, usuarios.nome AS gestor, 
-        usuarios.email, usuarios.telefone, usuarios.cpf_cnpj, usuarios.senha,
-        instituicoes.id AS id_instituicao, instituicoes.cnpj,
-        instituicoes.nome_fantasia, instituicoes.razao_social,
-        estados.id as id_estado, estados.nome AS estado, estados.sigla,
-        credenciamento.id AS id_credenciamento, credenciamento.observacao,
-        status.id AS id_status, status.nome AS status, credenciamento.id AS id_credenciamento
-        FROM credenciamento 
-        inner join usuarios on usuarios.id = credenciamento.id_usuario
-        inner join estados on estados.id = credenciamento.id_estado 
-        inner join instituicoes on instituicoes.id = credenciamento.id_instituicao 
-        inner join status on status.id = credenciamento.status
-        WHERE credenciamento.id_usuario = ?;`;
+        console.log('ID recebido no modelo:', id);
+        const sql = `
+            SELECT 
+                usuarios.id AS id_usuario, 
+                usuarios.nome AS gestor, 
+                usuarios.email,
+                usuarios.telefone, 
+                usuarios.cpf_cnpj,
+                instituicoes.id AS id_instituicao, 
+                instituicoes.cnpj, 
+                instituicoes.nome_fantasia, 
+                instituicoes.razao_social,
+                estados.id AS id_estado, 
+                estados.nome AS estado, 
+                estados.sigla,
+                credenciamento.id AS id_credenciamento, 
+                credenciamento.observacao, 
+                status.id AS id_status, 
+                status.nome AS status
+            FROM credenciamento 
+            INNER JOIN usuarios ON usuarios.id = credenciamento.id_usuario 
+            INNER JOIN estados ON estados.id = credenciamento.id_estado 
+            INNER JOIN instituicoes ON instituicoes.id = credenciamento.id_instituicao 
+            INNER JOIN status ON status.id = credenciamento.status
+            WHERE credenciamento.id_usuario = ?;
+        `;
 
         conexao.query(sql, [id], (erro, resultados) => {
             if (erro) {
@@ -138,6 +151,7 @@ class Usuario {
             }
         });
     }
+
 }
 
 module.exports = new Usuario;

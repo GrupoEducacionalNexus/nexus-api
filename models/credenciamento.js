@@ -141,6 +141,17 @@ class Credenciamento {
                                                 }
                                                 registrarNoficacao(`O cnpj ${cnpj} com a razão social "${razao_social}" solicitou credenciamento`, 7, item.id_usuario);
                                             });
+                                            res.status(200).json({ status: 200, msg: "Solicitação de credenciamento confirmada com sucesso" });
+
+                                            enviarEmail(`solicitacoes@centroeducanexus.com.br`, "SOLICITAÇÃO DE CREDENCIAMENTO",
+                                                `<b>
+                                            <p>SEGUE OS DADOS DO SOLICITANTE:</p>
+                                            <p>CNPJ: ${cnpj.toUpperCase()}</p>
+                                            <p>RAZÃO SOCIAL:  ${razao_social.toUpperCase()}</p>
+                                            <p>NOME FANTASIA:  ${nome_fantasia.toUpperCase()}</p>
+                                            <p>E-MAIL DO POLO:  ${email.toUpperCase()}</p>
+                                            <p>TELEFONE:  ${telefone.toUpperCase()}</p>
+                                        <b/>`);
                                         });
 
                                         res.status(200).json({ status: 200, msg: "Solicitação de credenciamento confirmada com sucesso" });
@@ -241,6 +252,16 @@ class Credenciamento {
                                 res.status(400).json({ status: 400, msg: erro });
                             } else {
                                 res.status(200).json({ status: 200, msg: "Atualizado com sucesso." });
+                                enviarEmail(`solicitacoes@centroeducanexus.com.br`, "OS DADOS DO CREDENCIAMENTO FORAM ALTERADOS",
+                                    `<b>
+                                    <p>SEGUE OS DADOS DA INSTTTUÇAO:</p>
+                                    <p>CNPJ: ${cnpj.toUpperCase()}</p>
+                                    <p>RAZÃO SOCIAL:  ${razao_social.toUpperCase()}</p>
+                                    <p>NOME FANTASIA:  ${nome_fantasia.toUpperCase()}</p>
+                                    <p>E-MAIL DO POLO:  ${email.toUpperCase()}</p>
+                                    <p>TELEFONE:  ${telefone.toUpperCase()}</p>
+                                <b/>`);
+
                             }
                         });
                     }

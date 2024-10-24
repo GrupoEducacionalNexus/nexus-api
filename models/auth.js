@@ -1,3 +1,4 @@
+
 // models/auth.js
 const conexao = require('../infraestrutura/conexao');
 let jwt = require('jsonwebtoken');

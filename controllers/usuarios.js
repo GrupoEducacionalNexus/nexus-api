@@ -2,7 +2,16 @@ const Usuario = require('../models/usuarios');
 const Auth = require('../models/auth');
 const permissoes = require('../helpers/permissoes');
 
-module.exports = app => {
+module.exports = (app) => {
+
+    const verificarPermissoes = (req, permissoesPermitidas, res, callback) => {
+        const temPermissao = permissoesPermitidas.some(permissao => req.id_permissao.includes(permissao));
+        if (temPermissao) {
+            callback();
+        } else {
+            res.status(400).send({ auth: false, permissoes: false, message: 'Você não tem permissão para acessar essa página.' });
+        }
+    };
 
     app.post('/usuarios', (req, res) => {
         const usuario = req.body;
@@ -37,9 +46,7 @@ module.exports = app => {
     app.get('/usuarios', Auth.verificaJWT, (req, res) => {
         if (req.id_permissao.includes(permissoes.admin) || req.id_permissao.includes(permissoes.secretaria)) {
             Usuario.lista(res);
-            return;
-        }
-        res.status(400).send({ auth: false, permissoes: false, message: 'Você não tem permissão para acessar essa página.' });
+        });
     });
 
     app.get('/usuarios/:id/permissoes', Auth.verificaJWT, (req, res) => {
