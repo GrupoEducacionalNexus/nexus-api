@@ -14,7 +14,9 @@ module.exports = (app) => {
     };
 
     app.post('/checklist_credenciamento', Auth.verificaJWT, (req, res) => {
-        verificarPermissoes(req, [permissoes.admin, permissoes.convenios], res, () => {
+        if (req.id_permissao.includes(permissoes.admin) ||
+            req.id_permissao.includes(permissoes.convenios) || req.id_permissao.includes(permissoes.processoCredenciamento)) {
+            console.log(req.body);
             ChecklistCredenciamento.adiciona(req.body, res);
         });
     });

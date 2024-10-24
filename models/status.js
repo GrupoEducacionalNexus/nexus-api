@@ -1,4 +1,3 @@
-const moment = require('moment');
 const conexao = require('../infraestrutura/conexao');
 
 class Status {

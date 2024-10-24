@@ -1,6 +1,8 @@
 const conexao = require('../infraestrutura/conexao');
 
 const cadastrarUsuario = async (usuario) => {
+    console.log(usuario);
+    
     try {
         const sql = `INSERT INTO usuarios SET ?`;
         const resultado = await new Promise((resolve, reject) => {

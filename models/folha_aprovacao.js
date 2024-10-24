@@ -6,11 +6,12 @@ class FolhaAprovacao {
     
     adiciona(folha_aprovacao, res) {
         console.log(folha_aprovacao);
-        const {id_banca, titulo_teseOuDissertacao, dataAprovacao} = folha_aprovacao;
+
+        const {id_banca, dataAprovacao} = folha_aprovacao;
 
         let dataHoraCriacao = moment().format('YYYY-MM-DD HH:mm:ss');
 
-        const folhaAprovacaoDatada = { id_banca, titulo_teseOuDissertacao, dataAprovacao, dataHoraCriacao };
+        const folhaAprovacaoDatada = { id_banca, dataAprovacao, dataHoraCriacao };
 
         let sql = `SELECT * FROM folha_aprovacao WHERE folha_aprovacao.id_banca = ?`;
 

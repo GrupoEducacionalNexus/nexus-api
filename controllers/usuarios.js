@@ -15,7 +15,14 @@ module.exports = (app) => {
 
     app.post('/usuarios', (req, res) => {
         const usuario = req.body;
-        Usuario.adiciona(usuario, res);
+        Usuario.adiciona(usuario, (erro, resultados) => {
+            if (erro) {
+                console.error(erro);
+                res.status(400).json({ status: 400, msg: "Erro ao cadastrar usuário!" });
+                return
+            }
+            res.status(200).json({ status: 200, msg: "Usuário cadastrado com sucesso" });
+        });
     });
 
     app.put('/usuarios/:id', Auth.verificaJWT, (req, res) => {
@@ -25,24 +32,25 @@ module.exports = (app) => {
     });
 
     app.get('/usuarios/:id', Auth.verificaJWT, (req, res) => {
-        verificarPermissoes(req, [
-            permissoes.admin, permissoes.secretaria, permissoes.orientadores, permissoes.eventos, 
-            permissoes.orientandos, permissoes.coordenador, permissoes.diretor, permissoes.grupo_trabalho,
-            permissoes.chamados, permissoes.convenios, permissoes.professor, permissoes.alunos
-        ], res, () => {
-            const id = req.userId;
-            Usuario.busca(id, res);
+        const id = req.userId;
+        Usuario.buscaPorId(id, (erro, resultados) => {
+            if (erro) {
+                console.error(erro);
+                res.status(400).json(erro);
+                return
+            }
+            res.status(200).json({ status: 200, resultados });
         });
     });
 
     app.get('/usuarios', Auth.verificaJWT, (req, res) => {
-        verificarPermissoes(req, [permissoes.admin, permissoes.secretaria], res, () => {
+        if (req.id_permissao.includes(permissoes.admin) || req.id_permissao.includes(permissoes.secretaria)) {
             Usuario.lista(res);
         });
     });
 
     app.get('/usuarios/:id/permissoes', Auth.verificaJWT, (req, res) => {
-        const id = req.userId;
+        const id = req.params.id;
         Usuario.listaDePermissoes(id, res);
     });
 
@@ -51,8 +59,8 @@ module.exports = (app) => {
         Usuario.listaDeNotificacoes(id, res);
     });
 
-    app.get('/usuarios/:id/credenciamento', Auth.verificaJWT,  (req, res) => {
-        const id = req.userId;
+    app.get('/usuarios/:id/credenciamento', Auth.verificaJWT, (req, res) => {
+        const id = req.params.id;
         Usuario.buscaSolicitacaoDeCredenciamento(id, res);
     });
 }

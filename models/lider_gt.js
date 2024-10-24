@@ -2,9 +2,9 @@ const moment = require('moment');
 const conexao = require('../infraestrutura/conexao');
 
 class LiderGt {
-
     adiciona(lider_gt, res) {
         const { id_usuario, id_grupoTrabalho, id_evento } = lider_gt;
+        console.log(lider_gt);
         let dataHoraCriacao = moment().format('YYYY-MM-DD hh:mm:ss');
         let id_liderGt = 0;
 
@@ -65,9 +65,12 @@ class LiderGt {
     }
 
     listaGruposDeTrabalho(id_usuario, res) {
-        const sql = `SELECT lider_gtxgrupo_trabalho.id_grupoTrabalho FROM lider_gtxgrupo_trabalho
-        INNER JOIN lider_gt ON lider_gt.id = lider_gtxgrupo_trabalho.id_liderGt
-        WHERE (SELECT usuarios.id FROM usuarios WHERE usuarios.id = lider_gt.id_usuario)  = ?`;
+        const sql = `SELECT lxgt.id_grupoTrabalho, gt.nome
+        FROM lider_gtxgrupo_trabalho lxgt
+        INNER JOIN lider_gt ON lider_gt.id = lxgt.id_liderGt
+        INNER JOIN grupos_trabalho gt ON gt.id = lxgt.id_grupoTrabalho
+        WHERE (SELECT usuarios.id FROM usuarios WHERE usuarios.id = lider_gt.id_usuario) = ?
+        AND gt.id_evento = 11`;
 
         conexao.query(sql, [id_usuario], (erro, resultados) => {
             if (erro) {

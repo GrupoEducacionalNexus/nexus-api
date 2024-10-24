@@ -4,8 +4,8 @@ const verificarPermissao = async (id_usuario, id_permissao) => {
     
     try {
         // Dados do usuário
-        let sql = `SELECT usuariosxpermissoes.id_usuario FROM usuarios
-        WHERE usuarios.id_usuario = ? AND usuarios.id_permissao = ?`;
+        let sql = `SELECT usuariosxpermissoes.id_usuario FROM usuariosxpermissoes
+        WHERE usuariosxpermissoes.id_usuario = ? AND usuariosxpermissoes.id_permissao = ?`;
 
         const resultados = await new Promise((resolve, reject) => {
             conexao.query(sql, [id_usuario, id_permissao], (erro, resultados) => {

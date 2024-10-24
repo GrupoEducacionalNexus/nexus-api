@@ -11,13 +11,58 @@ module.exports = app => {
 
     app.get('/abertura_turma', Auth.verificaJWT, (req, res) => {
         if (req.id_permissao.includes(permissoes.admin) || req.id_permissao.includes(permissoes.convenios)) {
-            const dataAtual = req.query.dataAtual; 
-            const cnpj = req.query.cnpj;
-            const nome_fantasia = req.query.nome_fantasia;
-            const data_solicitacao = req.query.data_solicitacao;
-            AberturaTurma.lista({dataAtual, cnpj, nome_fantasia, data_solicitacao}, res);
+            const {dataAtual, cnpj, nome_fantasia, data_solicitacao, estado, tipo_turma} = req.query;
+            console.log(req.query);
+            
+            AberturaTurma.lista({dataAtual, cnpj, nome_fantasia, data_solicitacao, estado, tipo_turma}, res);
             return;
         }
+        res.status(400).send({ auth: false, permissoes: false, message: 'Você não tem permissão para acessar essa página.' });
+    });
+
+    app.get('/abertura_turma/quantidade_solicitacoes', Auth.verificaJWT, (req, res) => {
+        if (req.id_permissao.includes(permissoes.admin) || req.id_permissao.includes(permissoes.convenios)) {
+            AberturaTurma.quantidadeDeSolicitacoesPorEstado(res);
+            return;
+        }
+        res.status(400).send({ auth: false, permissoes: false, message: 'Você não tem permissão para acessar essa página.' });
+    });
+
+    app.get('/abertura_turma/percentual_solicitacoes', Auth.verificaJWT, (req, res) => {
+        if (req.id_permissao.includes(permissoes.admin) || req.id_permissao.includes(permissoes.convenios)) {
+            AberturaTurma.percentualDoStatusDasSolicitacoes(res);
+            return;
+        }
+        res.status(400).send({ auth: false, permissoes: false, message: 'Você não tem permissão para acessar essa página.' });
+    });
+
+    app.get('/abertura_turma/quantidade_solicitacoes_instituicoes', Auth.verificaJWT, (req, res) => {
+        if (req.id_permissao.includes(permissoes.admin) || req.id_permissao.includes(permissoes.convenios)) {
+            console.log(req.query.estado);
+            AberturaTurma.quantidadeDeSolicitacoesDasInstituicoesPorEstado(req.query.estado, res);
+            return;
+        }
+        res.status(400).send({ auth: false, permissoes: false, message: 'Você não tem permissão para acessar essa página.' });
+    });
+
+    app.get('/abertura_turma/solicitacao_mensal', Auth.verificaJWT, (req, res) => {
+        if (req.id_permissao.includes(permissoes.admin) || req.id_permissao.includes(permissoes.convenios)) {
+        
+            AberturaTurma.solicitacoesMensal(parseInt(req.query.ano), res);
+            return;
+        }
+        res.status(400).send({ auth: false, permissoes: false, message: 'Você não tem permissão para acessar essa página.' });
+    });
+
+    app.put('/abertura_turma/:id', Auth.verificaJWT, (req, res) => {
+        if (req.id_permissao.includes(permissoes.admin) || req.id_permissao.includes(permissoes.convenios)) {
+            const id = req.params.id;
+            const valores = req.body;
+            console.log(id, valores); 
+           
+            AberturaTurma.altera(id, valores, res); 
+            return;
+        } 
         res.status(400).send({ auth: false, permissoes: false, message: 'Você não tem permissão para acessar essa página.' });
     });
  

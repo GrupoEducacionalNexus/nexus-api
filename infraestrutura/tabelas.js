@@ -18,7 +18,7 @@ class Tabelas {
         this.criarTbMembros();
         this.criarTbMembrosXEventos();
         this.criarTbAnexos();
-        this.criarTbAnexosXmembros();
+        this.criarTbAnexosXmembrosXgt();
         this.criarTbBancas();
         this.criaTbOrientandos();
         this.criaTbCursos();
@@ -75,8 +75,61 @@ class Tabelas {
         this.criaTbBancasXmembroExterno();
         this.criaTbBancasXmembroInterno();
         this.criarTbTipoMembroDaBanca();
-        this.criarTbMembrosDaBanca();
-        //this.criaTbTurmas();
+        this.criarTbMembrosDaBanca(); 
+        this.criarTbTipoTurma();
+    }
+
+    /**
+     * Criar tabela para especificar o tipo de turma
+     * 0 - Ensino Fundamental
+     * 1 - Ensino Medio
+     * 2 - Ambos (Fundamental e Médio)
+     * 
+     * @return void
+     */
+    criarTbTipoTurma(sql) {
+        var sql = `CREATE TABLE IF NOT EXISTS tipo_turma (
+            id INT NOT NULL AUTO_INCREMENT,
+            id_tipoturma INT NOT NULL,
+            turmas varchar(255),
+            PRIMARY KEY(id)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;`
+
+        this.conexao.query(sql, (erro) => {
+            if (erro) {
+                console.log(erro);
+            } else {
+                console.log("Tabela tipo_turma criada com successo!");
+                this.verificarTipoTurma();
+            }
+        });
+    }
+
+    verificarTipoTurma() {
+        const sql = `SELECT * from tipo_turma WHERE tipo_turma.turmas = 'ENSINO_FUNDAMENTAL' OR tipo_turma.turmas = 'ENSINO_MEDIO' OR tipo_turma.turmas = 'ENSINO_FUNDAMENTAL_MEDIO'`;
+        this.conexao.query(sql, (erro, resultados) => {
+            if (erro) {
+                console.log(erro);
+            } else {
+                //console.log(resultados);
+                if (resultados.length === 0) {
+                    this.inserirTipoTurma();
+                }
+            }
+        });
+    }
+
+    inserirTipoTurma() {
+        const sql = `INSERT INTO tipo_turma (id_tipoturma, turmas)
+        VALUES (1, 'ENSINO_FUNDAMENTAL'), (2, 'ENSINO_MEDIO'), (3, 'ENSINO_FUNDAMENTAL_MEDIO');`
+
+        this.conexao.query(sql, (erro) => {
+            if (erro) {
+                console.log(erro);
+            } else {
+                console.log("Tipos de turma criados com sucesso")
+            }
+        });
     }
 
     criarTbCiclos() {
@@ -562,7 +615,7 @@ class Tabelas {
     criaTbOrientador() {
         const sql = `CREATE TABLE IF NOT EXISTS orientador (
             id int NOT NULL AUTO_INCREMENT,
-            id_usuario int(11) NOT NULL,       
+            id_usuario int(11) NOT NULL,
             id_areaConcentracao int(11) NOT NULL,
             assinatura text NOT NULL,
             dataHoraCriacao datetime NOT NULL,
@@ -626,7 +679,7 @@ class Tabelas {
             vinculo_institucional int(11) NOT NULL DEFAULT '0',
             id_usuario int(11) NOT NULL,
             codigo_validacao varchar(255) DEFAULT '0',  
-            tipo_membro int(11) NOT NULL, 
+            tipo_membro int(11) NOT NULL,
             comoSoube text NOT NULL,
             dataHoraCriacao datetime NOT NULL,
             PRIMARY KEY(id)  
@@ -663,11 +716,12 @@ class Tabelas {
         const sql = `CREATE TABLE IF NOT EXISTS anexos (
             id int(11) NOT NULL AUTO_INCREMENT,
             id_usuario int(11) NOT NULL,
-            nome text NOT NULL, 
+            titulo text NOT NULL, 
             coautor text NOT NULL, 
             link text NOT NULL, 
             dataHoraCriacao datetime NOT NULL,
-            PRIMARY KEY(id) 
+            PRIMARY KEY(id),
+            FOREIGN KEY (id_usuario) REFERENCES usuarios(id)
           ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`;
 
         this.conexao.query(sql, (erro) => {
@@ -679,21 +733,32 @@ class Tabelas {
         });
     }
 
-    criarTbAnexosXmembros() {
-        const sql = `CREATE TABLE IF NOT EXISTS anexosxmembros (
+    criarTbAnexosXmembrosXgt() {
+        const sql = `CREATE TABLE IF NOT EXISTS anexosxmembrosxgt (
             id int(11) NOT NULL AUTO_INCREMENT,
-            id_usuario int(11) NOT NULL,
-            id_anexo int(11) NOT NULL,
-            id_grupoTrabalho int(11) NOT NULL DEFAULT '0',
+            titulo text NOT NULL, 
+            coautor text NOT NULL, 
+            link text NOT NULL,
+            anexo_resposta text,
+            observacao text, 
+            id_usuario int(11) NOT NULL, 
+            id_gt int(11) NOT NULL DEFAULT 0,
+            id_status int(11) NOT NULL DEFAULT 8,
+            idUsuarioMovto int(11), 
             dataHoraCriacao datetime NOT NULL,
-            PRIMARY KEY(id) 
-          ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`;
+            dataHoraAtualizacao datetime,
+            PRIMARY KEY(id),
+            FOREIGN KEY (id_usuario) REFERENCES usuarios(id), 
+            FOREIGN KEY (id_gt) REFERENCES grupos_trabalho(id),
+            FOREIGN KEY (id_status) REFERENCES status(id), 
+            FOREIGN KEY (idUsuarioMovto) REFERENCES usuarios(id)
+          ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`; 
 
         this.conexao.query(sql, (erro) => {
             if (erro) {
                 console.log(erro);
             } else {
-                console.log("Tabela de anexosxmembros criada com sucesso");
+                console.log("Tabela de anexosxmembrosxgt criada com sucesso");
             }
         });
     }
@@ -749,13 +814,13 @@ class Tabelas {
     criarTbTipoMembroDaBanca() {
         const sql = `CREATE TABLE IF NOT EXISTS tipo_membro_banca (
             id int(11) NOT NULL AUTO_INCREMENT,
-            telefone varchar(15) NOT NULL, 
+            nome varchar(20) NOT NULL, 
             dataHoraCriacao datetime NOT NULL,
-            PRIMARY KEY(id)
+            PRIMARY KEY(id) 
           ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`; 
 
         this.conexao.query(sql, (erro) => {
-            if (erro) {
+            if (erro) { 
                 console.log(erro);
             } else {
                 console.log("Tabela de declarações criada com sucesso");
@@ -1063,10 +1128,13 @@ class Tabelas {
         const sql = `CREATE TABLE IF NOT EXISTS membrosxgrupos_trabalho (
             id int NOT NULL AUTO_INCREMENT,
             id_membro int(11) NOT NULL,  
-            id_grupo_trabalho int(11) NOT NULL,            
+            id_grupo_trabalho int(11) NOT NULL,
+            tipo int(11) NOT NULL,             
             dataHoraCriacao datetime NOT NULL,
+            FOREIGN KEY (id_grupo_trabalho) REFERENCES grupos_trabalho(id),
+            FOREIGN KEY (id_membro) REFERENCES usuarios(id),
             PRIMARY KEY(id)
-            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;`
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;` 
 
         this.conexao.query(sql, (erro) => {
             if (erro) {
@@ -1184,7 +1252,8 @@ class Tabelas {
                         id INT NOT NULL AUTO_INCREMENT,
                         id_usuario INT NOT NULL,
                         dataHoraCriacao datetime NOT NULL,
-                        PRIMARY KEY (id)
+                        PRIMARY KEY (id), 
+                        FOREIGN KEY (id_usuario) REFERENCES usuarios(id) 
                     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;`;
 
         this.conexao.query(sql, (erro) => {
@@ -1238,18 +1307,65 @@ class Tabelas {
         });
     }
 
+    criarTbEstados() {
+        const sql = `CREATE TABLE IF NOT EXISTS estados (
+            id INT PRIMARY KEY AUTO_INCREMENT,
+            sigla VARCHAR(2) NOT NULL,
+            nome VARCHAR(50) NOT NULL
+          ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`;
+
+        this.conexao.query(sql, (erro) => {
+            if (erro) {
+                console.log(erro);
+            } else {
+                console.log("Tabela de estados criada com sucesso");
+                this.verificarEstados();
+            }
+        });
+    }
+
+    verificarEstados() {
+        const sql = `SELECT * from estados WHERE estados.sigla = 'AC' OR estados.sigla = 'AL' OR estados.sigla = 'AP' OR estados.sigla = 'AM' OR estados.sigla = 'BA' OR estados.sigla = 'CA' OR estados.sigla = 'DF' OR estados.sigla = 'ES' OR estados.sigla = 'GO' OR estados.sigla = 'MA' OR estados.sigla = 'MT' OR estados.sigla = 'MS' OR estados.sigla = 'MG' OR estados.sigla = 'PA' OR estados.sigla = 'PB' OR estados.sigla = 'PR' OR estados.sigla = 'PE' OR estados.sigla = 'PI' OR estados.sigla = 'RJ' OR estados.sigla = 'RN' OR estados.sigla = 'RS' OR estados.sigla = 'RO' OR estados.sigla = 'RR' OR estados.sigla = 'SC' OR estados.sigla = 'SP'`;
+        this.conexao.query(sql, (erro, resultados) => {
+            if (erro) {
+                console.log(erro);
+            } else {
+                if (resultados.length === 0) {
+                    this.inserirEstados();
+                }
+            }
+        });
+    }
+
+    inserirEstados() {
+        const sql = `INSERT INTO estados (sigla, nome)
+        VALUES ('AC', 'Acre'), ('AL', 'Alagoas'), ('AP', 'Amapa'), ('AM', 'Amazonas'), ('BA', 'Bahia'), ('CA', 'Ceará'), ('DF', 'Distrito Federal'), ('ES', 'Espírito Santo'), ('GO', 'Goiás'), ('MA', 'Maranhão'), ('MT', 'Mato Grosso'), ('MS', 'Mato Grosso do Sul'), ('MG', 'Minas Gerais'), ('PA', 'Pará'), ('PB', 'Paraíba'), ('PR', 'Paraná'), ('PE', 'Pernambuco'), ('PI', 'Piauí'), ('RJ', 'Rio de Janeiro'), ('RN', 'Rio Grande do Norte'), ('RS', 'Rio Grande do Sul'), ('RO', 'Rondônia'), ('RR', 'Roraima'), ('SC', 'Santa Catarina'), ('SP', 'São Paulo');`
+
+        this.conexao.query(sql, (erro) => {
+            if (erro) {
+                console.log(erro);
+            } else {
+                console.log("Estados criados com sucesso")
+            }
+        });
+    }
+
     criaTbAberturaTurma() {
         const sql = `CREATE TABLE IF NOT EXISTS abertura_turma (
             id INT NOT NULL AUTO_INCREMENT,
             email TEXT NOT NULL,
             telefone VARCHAR(20) NOT NULL DEFAULT '0',
             observacao TEXT NOT NULL,
+            metodologia TEXT NOT NULL,
+            curso TEXT NOT NULL,
+            tipo_turma INT NOT NULL,
             id_instituicao INT NOT NULL,
             id_estado INT NOT NULL,
             dataHoraCriacao datetime NOT NULL,
             PRIMARY KEY (id),
             FOREIGN KEY (id_instituicao) REFERENCES instituicoes(id),
-            FOREIGN KEY (id_estado) REFERENCES estados(id) 
+            FOREIGN KEY (id_estado) REFERENCES estados(id),
+            FOREIGN KEY (tipo_turma) REFERENCES tipo_turma(id)
           ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;`;
 
         this.conexao.query(sql, (erro) => {
@@ -1379,22 +1495,6 @@ class Tabelas {
                 console.log(erro);
             } else {
                 console.log("Tabela de anexosxchamados criada com sucesso");
-            }
-        });
-    }
-
-    criarTbEstados() {
-        const sql = `CREATE TABLE IF NOT EXISTS estados (
-            id INT PRIMARY KEY AUTO_INCREMENT,
-            sigla VARCHAR(2) NOT NULL,
-            nome VARCHAR(50) NOT NULL
-          ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`;
-
-        this.conexao.query(sql, (erro) => {
-            if (erro) {
-                console.log(erro);
-            } else {
-                console.log("Tabela de estados criada com sucesso");
             }
         });
     }

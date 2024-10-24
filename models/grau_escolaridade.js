@@ -1,10 +1,10 @@
 const moment = require('moment');
 const conexao = require('../infraestrutura/conexao');
 
-class VinculoInstitucional {
+class GrauEscolaridade {
 
     lista(res) {
-        const sql = `SELECT * FROM vinculo_institucional`;
+        const sql = `SELECT * FROM grau_escolaridade`;
 
         conexao.query(sql, (erro, resultados) => {
             if(erro) {
@@ -16,4 +16,4 @@ class VinculoInstitucional {
     }
 }
 
-module.exports = new VinculoInstitucional;
+module.exports = new GrauEscolaridade;

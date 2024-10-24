@@ -1,3 +1,4 @@
+// infraestrutura/conexao.js
 const mysql = require('mysql');
 
 const conexao = mysql.createPool({

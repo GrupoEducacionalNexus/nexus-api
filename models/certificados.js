@@ -2,47 +2,27 @@ const moment = require('moment');
 const conexao = require('../infraestrutura/conexao');
 const enviarEmail = require('../services/send-email');
 
-class Certificado { 
-    
+class Certificado {
+
     adiciona(certificado, res) {
         const { cpf, nome_completo, curso, codigo_validacao,
             data_emissaoDoDiploma, numero_livro, numero_pagina, numero_registro, data_local } = certificado;
         let dataHoraCriacao = moment().format('YYYY-MM-DD HH:mm:ss');
 
-        let sql = `SELECT usuarios.id, usuarios.cpf_cnpj, usuarios.nome
-         FROM usuarios WHERE usuarios.cpf_cnpj = ?`;
- 
-        conexao.query(sql, [cpf], (erro, resultados) => {
+        let sql = `INSERT INTO usuarios SET ?`;
+        conexao.query(sql, { cpf_cnpj: cpf, nome: nome_completo }, (erro, resultados) => {
             if (erro) {
-                res.status(400).json({ status: 400, msg: erro });
+                res.status(400).json(erro);
             } else {
-                if (resultados.length > 0) {
-                    sql = `INSERT INTO certificados SET ?`;
-                    conexao.query(sql, { curso, id_usuario: resultados[0].id, dataHoraCriacao, codigo_validacao,
-                        data_emissaoDoDiploma, numero_livro, numero_pagina, numero_registro, data_local }, (erro, resultados) => {
-                        if (erro) {
-                            res.status(400).json(erro);
-                        } else {
-                            res.status(200).json({ status: 200, msg: "Certificado cadastrado com sucesso" });
-                        }
-                    });
-                    return
-                }
-
-                sql = `INSERT INTO usuarios SET ?`;
-                conexao.query(sql, { cpf_cnpj: cpf, nome: nome_completo }, (erro, resultados) => {
+                sql = `INSERT INTO certificados SET ?`;
+                conexao.query(sql, {
+                    curso, id_usuario: resultados.insertId, dataHoraCriacao, codigo_validacao,
+                    data_emissaoDoDiploma, numero_livro, numero_pagina, numero_registro, data_local
+                }, (erro, resultados) => {
                     if (erro) {
                         res.status(400).json(erro);
                     } else {
-                        sql = `INSERT INTO certificados SET ?`;
-                        conexao.query(sql, { curso, id_usuario: resultados.insertId, dataHoraCriacao, codigo_validacao,
-                            data_emissaoDoDiploma, numero_livro, numero_pagina, numero_registro, data_local }, (erro, resultados) => {
-                            if (erro) {
-                                res.status(400).json(erro); 
-                            } else {
-                                res.status(200).json({ status: 200, msg: "Certificado cadastrado com sucesso" });
-                            }
-                        });
+                        res.status(200).json({ status: 200, msg: "Certificado cadastrado com sucesso" });
                     }
                 });
             }
@@ -107,7 +87,7 @@ class Certificado {
             if (erro) {
                 res.status(400).json({ status: 400, msg: erro });
             } else {
-                res.status(200).json({ status: 200, resultados });
+                res.status(200).json({ status: 200, resultados, msg: 1 });
             }
         });
     }

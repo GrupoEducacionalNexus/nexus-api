@@ -57,18 +57,19 @@ class Evento {
     }
 
     listaMembros(id_evento, res) {
-        let sql = `SELECT
-            membros.dataHoraCriacao, usuarios.cpf_cnpj AS cpf,
-            usuarios.nome AS nome_completo, usuarios.email,
-            date_format(membros.dataHoraCriacao, '%d/%m/%Y') AS dataHoraCriacao,
-            membros.codigo_validacao, date_format(eventos.dataEventoInicial, '%d/%m/%Y') AS dataEventoInicial,
-            date_format(eventos.dataEventoFinal, '%d/%m/%Y') AS dataEventoFinal,
-            eventos.carga_horaria
-            FROM membrosxeventos
-            INNER JOIN usuarios ON usuarios.id = membrosxeventos.id_usuario
-            INNER JOIN membros ON membros.id_usuario = usuarios.id
-            INNER JOIN eventos ON eventos.id = membrosxeventos.id_evento
-            WHERE membrosxeventos.id_evento = ? `; 
+        let sql = `SELECT membros.dataHoraCriacao, usuarios.cpf_cnpj AS cpf,
+        usuarios.nome AS nome_completo, usuarios.email, usuarios.telefone,
+        date_format(membros.dataHoraCriacao, '%d/%m/%Y') AS dataHoraCriacao,
+        membros.codigo_validacao, date_format(eventos.dataEventoInicial, '%d/%m/%Y') AS dataEventoInicial,
+        date_format(eventos.dataEventoFinal, '%d/%m/%Y') AS dataEventoFinal,
+        eventos.carga_horaria, estados.nome as estado, membros.cidade, membros.instituicao_origem,
+        membros.curso_formacao
+        FROM membrosxeventos
+        INNER JOIN usuarios ON usuarios.id = membrosxeventos.id_usuario
+        INNER JOIN membros ON membros.id_usuario = usuarios.id
+        INNER JOIN eventos ON eventos.id = membrosxeventos.id_evento
+		INNER JOIN estados on estados.id = membros.id_estado
+        WHERE membrosxeventos.id_evento = ? order by membros.id_usuario desc`;  
 
         conexao.query(sql, [id_evento], (erro, resultados) => {
             if (erro) {

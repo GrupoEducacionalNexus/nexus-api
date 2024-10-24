@@ -10,7 +10,7 @@ module.exports = app => {
             const orientador = req.nome;
             const banca = req.body;
             Banca.adiciona({ ...banca, id_orientador, orientador }, res);
-            return;
+            return; 
         }
         res.status(400).send({ auth: false, permissoes: false, message: 'Você não tem permissão para acessar essa página.' });
     });
@@ -20,6 +20,7 @@ module.exports = app => {
         || req.id_permissao.includes(permissoes.orientadores)) {
             const id_banca = parseInt(req.params.id);
             const valores = req.body;
+            console.log(id_banca, valores);
             Banca.altera(id_banca, valores, req.id_permissao, res);
             return;
         }
@@ -36,9 +37,9 @@ module.exports = app => {
         res.status(400).send({ auth: false, permissoes: false, message: 'Você não tem permissão para acessar essa página.' });
     });
 
-    app.get('/bancas/:id/declaracoes', Auth.verificaJWT, (req, res) => {
+    app.get('/bancas/:id/declaracoes_participacao', Auth.verificaJWT, (req, res) => {
         const id_banca = req.params.id;
-        Banca.listaDeDeclaracoes(id_banca, res);
+        Banca.listaDeDeclaracoesDeParticipacao(id_banca, res);
     });
 
     app.get('/bancas/:id/membros', Auth.verificaJWT, (req, res) => {

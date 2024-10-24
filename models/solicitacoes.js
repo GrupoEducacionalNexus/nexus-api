@@ -184,8 +184,7 @@ class Solicitacao {
         INNER JOIN status ON solicitacoes.status = status.id
         INNER JOIN orientandos ON usuarios.id = orientandos.id_usuario
         INNER JOIN bancas ON bancas.id_orientando = orientandos.id
-        LEFT JOIN ata ON ata.id_banca = bancas.id
-        GROUP BY solicitacoes.id`;
+        LEFT JOIN ata ON ata.id_banca = bancas.id`;
 
         conexao.query(sql, (erro, resultados) => {
             if (erro) {

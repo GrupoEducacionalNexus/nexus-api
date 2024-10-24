@@ -14,7 +14,22 @@ class Permissao {
         });
     }
 
-    adicionaPermissaoUsuario(id_permissao, usuario, res) {
+    adiciona(usuario, callback) {
+        const { id_permissao, id_usuario } = usuario;
+        const dataHoraCriacao = moment().format('YYYY-MM-DD hh:mm:ss');
+        const permisaoDatada = { id_usuario, id_permissao, dataHoraCriacao }
+ 
+        const sql = `INSERT INTO usuariosxpermissoes SET ?`;
+        conexao.query(sql, permisaoDatada, (erro, resultados) => {
+            if (erro) {
+                callback(erro, null);
+            } else {
+                callback(null, resultados);
+            }
+        });
+    }
+
+    verfificaPermissao() {
         let sql = `SELECT * FROM usuariosxpermissoes 
         WHERE usuariosxpermissoes.id_permissao = ? AND usuariosxpermissoes.id_usuario= ?`;
 
@@ -39,7 +54,7 @@ class Permissao {
 
                 const dataHoraCriacao = moment().format('YYYY-MM-DD hh:mm:ss');
                 const permisaoDatada = { id_usuario: usuario.id_usuario, id_permissao, dataHoraCriacao }
-                
+
                 sql = `INSERT INTO usuariosxpermissoes SET ?`;
                 conexao.query(sql, permisaoDatada, (erro, resultados) => {
                     if (erro) {

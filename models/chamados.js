@@ -91,6 +91,7 @@ class Chamado {
                         }
 
                         const comentarioDatado = { id_usuario: idSolicitante, id_chamado, descricao: `A data de finalização foi definida para ${moment(dataHoraFinalizacao).format('DD/MM/YYYY')}`, dataHoraCriacao };
+
                         //Registrar a data de finalização do chamado
                         registrarComentario(comentarioDatado);
 
@@ -122,7 +123,7 @@ class Chamado {
             } else {
                 const { id_usuario, dataHoraFinalizacao, status, visualizado, idResponsavel } = valores;
 
-                console.log(resultados);
+                // console.log(resultados);
 
                 sql = `UPDATE chamados SET ? WHERE chamados.id = ?`;
 
@@ -147,6 +148,10 @@ class Chamado {
                     chamadoDatado[`idResponsavel`] = idResponsavel;
                 }
 
+                chamadoDatado[`dataHoraAtualizacao`] = moment().format('YYYY-MM-DD HH:mm:ss');
+                console.log(chamadoDatado);
+                //return 
+
                 conexao.query(sql, [chamadoDatado, id], (erro, resultados) => {
                     if (erro) {
                         res.status(400).json({ status: 400, msg: erro });
@@ -159,7 +164,7 @@ class Chamado {
                             comentarioDatado = {
                                 id_usuario, id_chamado: id, descricao: `O chamado com id ${id} foi visualizado`, dataHoraCriacao
                             };
-                            tipo_notificao = 5; 
+                            tipo_notificao = 5;
                         }
 
                         if (valores.hasOwnProperty('dataHoraFinalizacao')) {
@@ -179,10 +184,10 @@ class Chamado {
                             };
                             tipo_notificao = 3;
                         }
- 
+
                         if (valores.hasOwnProperty('idResponsavel')) {
                             comentarioDatado = {
-                               id_usuario, id_chamado: id, descricao: `O chamado com id ${id} foi reatribuido`, dataHoraCriacao
+                                id_usuario, id_chamado: id, descricao: `O chamado com id ${id} foi reatribuido`, dataHoraCriacao
                             };
                             tipo_notificao = 4;
                         }
@@ -193,25 +198,26 @@ class Chamado {
                                 res.status(400).json(erro);
                             } else {
                                 res.status(200).json({ status: 200, msg: "Atualizado com sucesso." });
-                                const io = socket.getIO();
-                                buscarSetorResponsavel(id).then(idSetorResponsavel => {
-                                    listaDeParticipantesDoChamado(id).then(result => {
-                                        result.map(item => {
-                                            if (conectados.find(objeto => objeto.nome === item.nome)) {
-                                                io.to(conectados.find(objeto => objeto.nome === item.nome).id).emit('notification', { message: comentarioDatado.descricao });
-                                            }
-                                            registrarNoficacao(comentarioDatado.descricao, tipo_notificao, item.id_usuario);
+
+                                if (tipo_notificao === 3 || tipo_notificao === 4 || tipo_notificao === 6) {
+                                    const io = socket.getIO();
+                                    buscarSetorResponsavel(id).then(idSetorResponsavel => {
+                                        listaDeParticipantesDoChamado(id).then(result => {
+                                            result.map(item => {
+                                                if (conectados.find(objeto => objeto.nome === item.nome)) {
+                                                    io.to(conectados.find(objeto => objeto.nome === item.nome).id).emit('notification', { message: comentarioDatado.descricao });
+                                                }
+                                                registrarNoficacao(comentarioDatado.descricao, tipo_notificao, item.id_usuario);
+                                            });
                                         });
                                     });
-                                });
-                                return
+                                }
                             }
                         });
                     }
                 });
             }
         });
-
     }
 
     busca(id, res) {

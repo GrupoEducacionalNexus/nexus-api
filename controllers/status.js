@@ -6,7 +6,8 @@ module.exports = app => {
 
     app.get('/status', Auth.verificaJWT, (req, res) => {
         if (req.id_permissao.includes(permissoes.admin) || req.id_permissao.includes(permissoes.secretaria) 
-            || req.id_permissao.includes(permissoes.orientadores) || req.id_permissao.includes(permissoes.chamados)) {
+            || req.id_permissao.includes(permissoes.orientadores) || req.id_permissao.includes(permissoes.chamados)
+            || req.id_permissao.includes(permissoes.processoCredenciamento)) {
             Status.lista(res);
             return;
         }

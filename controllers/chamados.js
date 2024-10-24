@@ -13,6 +13,8 @@ module.exports = app => {
     app.put('/chamados/:id', Auth.verificaJWT, (req, res) => {
         const id_chamado = req.params.id;
         const chamado = req.body;
+        console.log(chamado);
+      
         Chamado.altera(id_chamado, { ...chamado, id_usuario: req.userId}, req, res);
     });
     

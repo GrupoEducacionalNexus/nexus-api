@@ -13,7 +13,6 @@ const { verificarPermissao } = require('../services/verificarPermissao');
 
 
 class Credenciamento {
-
     adiciona(credenciamento, res) {
         const io = socket.getIO();
 
@@ -24,19 +23,24 @@ class Credenciamento {
             id_estado, cidade
         } = credenciamento;
 
+        let credenciamentoDatado = {};
+
         const dataHoraCriacao = moment().format('YYYY-MM-DD HH:mm:ss');
 
         let sql = ``;
-
-        buscarUsuario(email).then(result => {
+        let id_usuario = 0;
+        buscarUsuario(email.trim()).then(result => {
             //Verifica se o solicitante está cadastrado
-
+            console.log(result); 
+              
             if (result.length > 0) {
-                console.log(result[0].id)
-                const id_usuario = result[0].id;
-                sql = `SELECT * FROM credenciamento WHERE credenciamento.id_usuario = ?`;
+                console.log(result[0].id);
+                id_usuario = result[0].id;
+                sql = `SELECT * FROM credenciamento 
+                WHERE credenciamento.id_usuario = ? or credenciamento.id_instituicao = 
+                (SELECT instituicoes.id FROM instituicoes WHERE instituicoes.cnpj = ?)`;
 
-                conexao.query(sql, [id_usuario], (erro, resultados) => {
+                conexao.query(sql, [id_usuario, cnpj], (erro, resultados) => {
                     if (erro) {
                         res.status(400).json(erro);
                         return
@@ -44,14 +48,15 @@ class Credenciamento {
 
                     //Verifica se a solicitação já foi realizada
                     if (resultados.length > 0) {
-                        res.status(400).json({ msg: "Você já solicitou credenciamento", status: 400 });
+                        res.status(400).json({ msg: `A instituição já está em processo de credenciamento`, status: 400 });
                         return
                     }
 
                     //Verificar se o usuário já possui a permissão
                     verificarPermissao(id_usuario, 15).then(result => {
                         if (result.length > 0) {
-                            //Registra a solicitafção de credenciamento
+                            credenciamentoDatado = { id_usuario, id_instituicao, id_estado, cidade, observacao: 0, status: 5, dataHoraCriacao };
+                            //Registra a solicitação de credenciamento
                             sql = `INSERT INTO credenciamento SET ?`;
                             conexao.query(sql, credenciamentoDatado, (erro, resultados) => {
                                 if (erro) {
@@ -70,15 +75,15 @@ class Credenciamento {
 
                                 res.status(200).json({ status: 200, msg: "Solicitação de credenciamento confirmada com sucesso" });
 
-                                enviarEmail(`solicitacoes@centroeducanexus.com.br`, "SOLICITAÇÃO DE CREDENCIAMENTO",
-                                    `<b>
-                                        <p>SEGUE OS DADOS DO SOLICITANTE:</p>
-                                        <p>CNPJ: ${cnpj.toUpperCase()}</p>
-                                        <p>RAZÃO SOCIAL:  ${razao_social.toUpperCase()}</p>
-                                        <p>NOME FANTASIA:  ${nome_fantasia.toUpperCase()}</p>
-                                        <p>E-MAIL DO POLO:  ${email.toUpperCase()}</p>
-                                        <p>TELEFONE:  ${telefone.toUpperCase()}</p>
-                                    <b/>`);
+                                // enviarEmail(`solicitacoes@centroeducanexus.com.br`, "SOLICITAÇÃO DE CREDENCIAMENTO",
+                                //     `<b>
+                                //         <p>SEGUE OS DADOS DO SOLICITANTE:</p>
+                                //         <p>CNPJ: ${cnpj.toUpperCase()}</p>
+                                //         <p>RAZÃO SOCIAL:  ${razao_social.toUpperCase()}</p>
+                                //         <p>NOME FANTASIA:  ${nome_fantasia.toUpperCase()}</p>
+                                //         <p>E-MAIL DO POLO:  ${email.toUpperCase()}</p>
+                                //         <p>TELEFONE:  ${telefone.toUpperCase()}</p>
+                                //     <b/>`);
                             });
                             return
                         }
@@ -119,7 +124,7 @@ class Credenciamento {
                             //Atribuir permissão de gestor
                             atribuirPermissao(id_usuario, 15).then(insertId => {
                                 if (insertId > 0) {
-                                    const credenciamentoDatado = { id_usuario, id_instituicao, id_estado, cidade, observacao: 0, status: 5, dataHoraCriacao };
+                                    credenciamentoDatado = { id_usuario, id_instituicao, id_estado, cidade, observacao: 0, status: 5, dataHoraCriacao };
 
                                     //Registra a solicitafção de credenciamento
                                     sql = `INSERT INTO credenciamento SET ?`;
@@ -149,6 +154,17 @@ class Credenciamento {
                                         <b/>`);
                                         });
 
+                                        res.status(200).json({ status: 200, msg: "Solicitação de credenciamento confirmada com sucesso" });
+
+                                        enviarEmail(`solicitacoes@centroeducanexus.com.br`, "SOLICITAÇÃO DE CREDENCIAMENTO",
+                                            `<b>
+                                                <p>SEGUE OS DADOS DO SOLICITANTE:</p>
+                                                <p>CNPJ: ${cnpj.toUpperCase()}</p>
+                                                <p>RAZÃO SOCIAL:  ${razao_social.toUpperCase()}</p>
+                                                <p>NOME FANTASIA:  ${nome_fantasia.toUpperCase()}</p>
+                                                <p>E-MAIL DO POLO:  ${email.toUpperCase()}</p>
+                                                <p>TELEFONE:  ${telefone.toUpperCase()}</p>
+                                            <b/>`);
                                     });
                                 }
                             });
@@ -158,44 +174,61 @@ class Credenciamento {
                 return
             }
 
-            cadastrarUsuario({ nome, email, telefone, cpf_cnpj: cpf, senha, dataHoraCriacao }).then(insertId => {
-                if (insertId > 0) {
-                    atribuirPermissao(insertId, 15).then(insertId => {
-                        if (insertId > 0) {
-                            const credenciamentoDatado = { id_usuario: insertId, id_instituicao, id_estado, cidade, observacao: 0, status: 5, dataHoraCriacao };
+            sql = `SELECT * FROM credenciamento 
+                WHERE credenciamento.id_instituicao = 
+                (SELECT instituicoes.id FROM instituicoes WHERE instituicoes.cnpj = ?)`;
 
-                            //Registra a solicitafção de credenciamento
-                            sql = `INSERT INTO credenciamento SET ?`;
-                            conexao.query(sql, credenciamentoDatado, (erro, resultados) => {
-                                if (erro) {
-                                    res.status(400).json(erro);
-                                    return;
-                                }
-
-                                listaDeUsuariosDoSetor(2).then(result => {
-                                    result.map(item => {
-                                        if (conectados.find(objeto => objeto.nome === item.nome)) {
-                                            io.to(conectados.find(objeto => objeto.nome === item.nome).id).emit('notification', { message: `O cnpj ${cnpj} com a razão social ${razao_social} solicitou credenciamento` });
-                                        }
-                                        registrarNoficacao(`O cnpj ${cnpj} com a razão social "${razao_social}" solicitou credenciamento`, 7, item.id_usuario);
-                                    });
-                                });
-
-                                res.status(200).json({ status: 200, msg: "Solicitação de credenciamento confirmada com sucesso" });
-
-                                enviarEmail(`solicitacoes@centroeducanexus.com.br`, "SOLICITAÇÃO DE CREDENCIAMENTO",
-                                    `<b>
-                                    <p>SEGUE OS DADOS DO SOLICITANTE:</p>
-                                    <p>CNPJ: ${cnpj.toUpperCase()}</p>
-                                    <p>RAZÃO SOCIAL:  ${razao_social.toUpperCase()}</p>
-                                    <p>NOME FANTASIA:  ${nome_fantasia.toUpperCase()}</p>
-                                    <p>E-MAIL DO POLO:  ${email.toUpperCase()}</p>
-                                    <p>TELEFONE:  ${telefone.toUpperCase()}</p>
-                                <b/>`);
-                            });
-                        }
-                    });
+            conexao.query(sql, [cnpj], (erro, resultados) => {
+                if (erro) {
+                    res.status(400).json(erro);
+                    return
                 }
+
+                //Verifica se a solicitação já foi realizada
+                if (resultados.length > 0) {
+                    res.status(400).json({ msg: `A instituição já está em processo de credenciamento`, status: 400 });
+                    return
+                }
+
+                cadastrarUsuario({ nome, email, telefone, cpf_cnpj: cpf, senha, dataHoraCriacao }).then(insertId => {
+                    id_usuario = insertId;
+                    if (insertId > 0) {
+                        atribuirPermissao(insertId, 15).then(insertId => {
+                            if (insertId > 0) {
+                                credenciamentoDatado = { id_usuario, id_instituicao, id_estado, cidade, observacao: 0, status: 5, dataHoraCriacao };
+                                //Registra a solicitafção de credenciamento
+                                sql = `INSERT INTO credenciamento SET ?`;
+                                conexao.query(sql, credenciamentoDatado, (erro, resultados) => {
+                                    if (erro) {
+                                        res.status(400).json(erro);
+                                        return;
+                                    }
+
+                                    listaDeUsuariosDoSetor(2).then(result => {
+                                        result.map(item => {
+                                            if (conectados.find(objeto => objeto.nome === item.nome)) {
+                                                io.to(conectados.find(objeto => objeto.nome === item.nome).id).emit('notification', { message: `O cnpj ${cnpj} com a razão social ${razao_social} solicitou credenciamento` });
+                                            }
+                                            registrarNoficacao(`O cnpj ${cnpj} com a razão social "${razao_social}" solicitou credenciamento`, 7, item.id_usuario);
+                                        });
+                                    });
+
+                                    res.status(200).json({ status: 200, msg: "Solicitação de credenciamento confirmada com sucesso" });
+
+                                    enviarEmail(`solicitacoes@centroeducanexus.com.br`, "SOLICITAÇÃO DE CREDENCIAMENTO",
+                                        `<b>
+                                            <p>SEGUE OS DADOS DO SOLICITANTE:</p>
+                                            <p>CNPJ: ${cnpj.toUpperCase()}</p>
+                                            <p>RAZÃO SOCIAL:  ${razao_social.toUpperCase()}</p>
+                                            <p>NOME FANTASIA:  ${nome_fantasia.toUpperCase()}</p>
+                                            <p>E-MAIL DO POLO:  ${email.toUpperCase()}</p>
+                                            <p>TELEFONE:  ${telefone.toUpperCase()}</p>
+                                        <b/>`);
+                                });
+                            }
+                        });
+                    }
+                });
             });
         });
     }
@@ -238,17 +271,21 @@ class Credenciamento {
     }
 
     anexosDoCredenciamento(id_credenciamento, res) {
-        const sql = `SELECT documento_credenciamento.id as id_documento_credenciamento, 
-        checklist_credenciamento.nome as item_checklist, 
-        documento_credenciamento.id_credenciamento, status.id AS id_status,
-         status.nome AS status, 
+        const sql = `SELECT checklist_credenciamento.id AS id_checklist, documento_credenciamento.id as id_documento_credenciamento, 
+        documento_credenciamento.id_credenciamento,
+        checklist_credenciamento.nome as item_checklist,
+        status.id AS id_status,
+        status.nome AS status, 
         documento_credenciamento.anexo, documento_credenciamento.observacao,
+        checklist_credenciamentoxestado.id_estado,
         DATE_FORMAT(documento_credenciamento.dataHoraCriacao, "%d-%m-%Y") AS dataHoraCriacao
-        FROM documento_credenciamento
-        INNER JOIN status on status.id = documento_credenciamento.status
-        INNER JOIN checklist_credenciamento on checklist_credenciamento.id = documento_credenciamento.id_checklist_credenciamento
-        WHERE documento_credenciamento.id_credenciamento = ?
-        ORDER BY documento_credenciamento.id DESC`;
+        FROM checklist_credenciamentoxestado
+        LEFT JOIN documento_credenciamento ON documento_credenciamento.id_checklist_credenciamento =
+        checklist_credenciamentoxestado.id_checklist
+        LEFT JOIN credenciamento ON credenciamento.id = documento_credenciamento.id_credenciamento
+        LEFT JOIN checklist_credenciamento ON checklist_credenciamento.id = documento_credenciamento.id_checklist_credenciamento
+        LEFT JOIN status on status.id = documento_credenciamento.status
+        WHERE credenciamento.id = ?`;
 
         conexao.query(sql, [id_credenciamento], (erro, resultados) => {
             if (erro) {
